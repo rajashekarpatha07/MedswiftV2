@@ -2,13 +2,11 @@ import jwt from "jsonwebtoken";
 import type { JwtPayload } from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import { ApiError } from "./ApiError.js";
+import { ACCESS_TOKEN_SECRET, REFRESH_TOKEN_SECRET  } from "../../config/env.js" ;
 
-if (!process.env.ACCESS_TOKEN_SECRET || !process.env.REFRESH_TOKEN_SECRET) {
+if (!ACCESS_TOKEN_SECRET || !REFRESH_TOKEN_SECRET) {
   throw new ApiError(500, "JWT secrets are not defined in environment variables");
 }
-
-const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET;
-const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET;
 
 const SALT_ROUNDS = 10;
 

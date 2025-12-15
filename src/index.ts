@@ -1,11 +1,11 @@
 import { app } from "./app.js";
 import dotenv from "dotenv";
 import { ConnectDb } from "./config/Dbconnecton.js";
+import { PORT } from "./config/env.js";
 
 dotenv.config({
   path: "./.env",
 });
-const PORT = process.env.PORT;
 const StartServer = async () => {
   try {
     await ConnectDb();
