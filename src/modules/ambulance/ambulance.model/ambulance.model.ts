@@ -4,7 +4,7 @@ import {
   verifyPassword,
   generateAccessToken,
   generateRefreshToken,
-} from "../../shared/utils/auth.util.js"; // Ensure this path matches your folder structure
+} from "../../../shared/utils/auth.util.js"; // Ensure this path matches your folder structure
 
 // 1. Define the TypeScript Interface
 export interface IAmbulance extends Document {

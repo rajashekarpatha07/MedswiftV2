@@ -10,13 +10,16 @@ import { ApiError } from "./shared/utils/ApiError.js";
 import { ApiResponse } from "./shared/utils/ApiResponce.js";
 
 //UserRoutes import
-import { userRoutes } from "./modules/user/routes/user.routes.js";
+import { userRoutes } from "./modules/user/user.routes/user.routes.js";
+
+//AmbulanceRoutes import
+import { ambulanceRoutes } from './modules/ambulance/ambulance.routes/ambulance.routes.js';
 
 const app: Application = express();
 
 app.use(
   cors({
-    origin: "*",
+    origin: "http://localhost:5000",
     credentials: true,
   })
 );
@@ -27,6 +30,9 @@ app.use(cookieParser());
 
 //UserRoutes
 app.use("/api/v2/user", userRoutes)
+
+//AmbulanceRoutes
+app.use("/api/v2/ambulance", ambulanceRoutes)
 
 // Global Error Handler middleware
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {

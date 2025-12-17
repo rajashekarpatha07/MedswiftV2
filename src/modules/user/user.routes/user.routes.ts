@@ -1,8 +1,8 @@
 import { Router } from "express";
 import { z } from "zod";
 import { validate } from "../../../shared/middlewares/validate.middleware.js";
-import { createUserSchema, userEmailPhoneLoginSchema} from "../dto/user.dto.js";
-import { registerUser, loginUser } from "../user.controller.js";
+import { createUserSchema, userEmailPhoneLoginSchema} from "../user.dto/user.dto.js";
+import { registerUser, loginUser } from "../user.controller/user.controller.js";
 const router = Router();
 
 /**

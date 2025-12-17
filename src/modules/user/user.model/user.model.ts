@@ -4,7 +4,7 @@ import {
   verifyPassword,
   generateAccessToken,
   generateRefreshToken,
-} from "../../shared/utils/auth.util.js";
+} from "../../../shared/utils/auth.util.js";
 
 export interface IUser extends Document {
   _id: Types.ObjectId;

@@ -1,13 +1,13 @@
-import { asyncHandler } from "../../shared/utils/AsyncHandler.js";
-import { ApiError } from "../../shared/utils/ApiError.js";
-import { ApiResponse } from "../../shared/utils/ApiResponce.js";
+import { asyncHandler } from "../../../shared/utils/AsyncHandler.js";
+import { ApiError } from "../../../shared/utils/ApiError.js";
+import { ApiResponse } from "../../../shared/utils/ApiResponce.js";
 import {
   ambulanceLoginSchema,
   createAmbulanceSchema,
-} from "./dto/ambulance.dto.js";
+} from "../ambulance.dto/ambulance.dto.js";
 import type { Request, Response } from "express";
-import { Ambulance } from "./ambulance.model.js";
-import { NODE_ENV } from "../../config/env.js";
+import { Ambulance } from "../ambulance.model/ambulance.model.js";
+import { NODE_ENV } from "../../../config/env.js";
 /**
  * @description Register a new ambulance
  * @route POST /api/v2/ambulances/register

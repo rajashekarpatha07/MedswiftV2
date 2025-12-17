@@ -1,12 +1,12 @@
 import type { Request, Response } from "express";
-import { ApiError } from "../../shared/utils/ApiError.js";
-import { ApiResponse } from "../../shared/utils/ApiResponce.js";
-import { asyncHandler } from "../../shared/utils/AsyncHandler.js";
+import { ApiError } from "../../../shared/utils/ApiError.js";
+import { ApiResponse } from "../../../shared/utils/ApiResponce.js";
+import { asyncHandler } from "../../../shared/utils/AsyncHandler.js";
 import {
   createUserSchema,
-} from "./dto/user.dto.js";
-import { User } from "./user.model.js";
-import { NODE_ENV } from "../../config/env.js";
+} from "../user.dto/user.dto.js";
+import { User } from "../user.model/user.model.js";
+import { NODE_ENV } from "../../../config/env.js";
 
 /**
  * @description Register a new user
