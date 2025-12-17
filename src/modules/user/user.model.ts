@@ -1,4 +1,4 @@
-import mongoose, { Document, Schema } from "mongoose";
+import mongoose, { Document, Schema, Types } from "mongoose";
 import {
   hashPassword,
   verifyPassword,
@@ -7,12 +7,13 @@ import {
 } from "../../shared/utils/auth.util.js";
 
 export interface IUser extends Document {
+  _id: Types.ObjectId;
   name: string;
   phone: string;
   email: string;
   password?: string; 
   bloodGroup: "A+" | "A-" | "B+" | "B-" | "O+" | "O-" | "AB+" | "AB-";
-  medicalHistory?: string;
+  medicalHistory?: string | undefined;
   location: {
     type: "Point";
     coordinates: [number, number]; 
