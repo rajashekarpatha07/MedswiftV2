@@ -103,12 +103,13 @@ UserSchema.methods.checkPassword = async function (this: IUser, enteredPassword:
   return await verifyPassword(enteredPassword, this.password);
 };
 
+//added role
 UserSchema.methods.GetAccessToken = function (this: IUser): string {
-  return generateAccessToken({ id: this._id.toHexString() });
+  return generateAccessToken({ id: this._id.toHexString(), role: "user" });
 };
 
 UserSchema.methods.GetRefreshToken = function (this: IUser): string {
-  return generateRefreshToken({ id: this._id.toHexString() });
+  return generateRefreshToken({ id: this._id.toHexString(), role: "user" });
 };
 
 // 6. Export the Model

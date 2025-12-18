@@ -1,9 +1,21 @@
 import { Router } from "express";
 import { z } from "zod";
 import { validate } from "../../../shared/middlewares/validate.middleware.js";
-import { createUserSchema, userEmailPhoneLoginSchema} from "../user.dto/user.dto.js";
-import { registerUser, loginUser } from "../user.controller/user.controller.js";
+import {
+  createUserSchema,
+  userEmailPhoneLoginSchema,
+} from "../user.dto/user.dto.js";
+import {
+  registerUser,
+  loginUser,
+  logoutUser,
+} from "../user.controller/user.controller.js";
+import { verifyUserJWT } from "../../../shared/middlewares/auth.middleware.js";
 const router = Router();
+
+// ============================================
+// PUBLIC ROUTES
+// ============================================
 
 /**
  * @route   POST /api/v2/user/register
@@ -12,7 +24,6 @@ const router = Router();
  */
 router.post(
   "/register",
-  // Wrap the DTO in z.object({ body: ... }) so the middleware checks req.body
   validate(z.object({ body: createUserSchema })),
   registerUser
 );
@@ -24,9 +35,19 @@ router.post(
  */
 router.post(
   "/login",
-//   Wrap the DTO in z.object({ body: ... })
-  validate(z.object({ body: userEmailPhoneLoginSchema})),
+  validate(z.object({ body: userEmailPhoneLoginSchema })),
   loginUser
 );
+
+// ============================================
+// PROTECTED ROUTES
+// ============================================
+
+/**
+ * @route   POST /api/v2/user/logout
+ * @desc    Logout user and clear tokens
+ * @access  Private
+ */
+router.post("/logout", verifyUserJWT, logoutUser);
 
 export const userRoutes: ReturnType<typeof Router> = router;
