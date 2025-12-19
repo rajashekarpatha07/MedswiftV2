@@ -14,6 +14,7 @@ import {
   logoutAmbulance,
   updateAmbulanceStatus,
   updateAmbulanceLocation,
+  getAmbulanceProfile
 } from "../ambulance.controllers/ambulance.controller.js";
 
 const router = Router();
@@ -78,5 +79,12 @@ router.patch(
   validate(z.object({ body: updateLocationSchema })),
   updateAmbulanceLocation
 );
+
+/**
+ * @route   GET /api/v2/ambulance/me
+ * @desc    Get current ambulance profile
+ * @access  Private
+ */
+router.get("/me", verifyAmbulanceJWT, getAmbulanceProfile);
 
 export const ambulanceRoutes: ReturnType<typeof Router> = router;

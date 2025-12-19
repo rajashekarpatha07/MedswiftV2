@@ -293,10 +293,33 @@ const updateAmbulanceLocation = asyncHandler(
   }
 );
 
+/**
+ * @description Get current logged in ambulance profile
+ * @route GET /api/v2/ambulance/me
+ * @access Private
+ */
+const getAmbulanceProfile = asyncHandler(async (req: Request, res: Response) => {
+  // req.ambulance is populated by verifyAmbulanceJWT middleware
+  // It is already sanitized (password removed) by the middleware
+  const ambulance = req.ambulance;
+
+  if (!ambulance) {
+    throw new ApiError(401, "Unauthorized - Ambulance not logged in");
+  }
+
+  res
+    .status(200)
+    .json(
+      new ApiResponse(200, ambulance, "Ambulance profile fetched successfully")
+    );
+});
+
+
 export {
   registerAmbulance,
   loginAmbulance,
   logoutAmbulance,
   updateAmbulanceStatus,
   updateAmbulanceLocation,
+  getAmbulanceProfile
 };
