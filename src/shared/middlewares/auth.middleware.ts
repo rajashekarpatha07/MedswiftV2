@@ -1,5 +1,5 @@
-import { User } from "../../modules/user/user.model/user.model.js";
-import { Ambulance } from "../../modules/ambulance/ambulance.model/ambulance.model.js";
+import { User } from "../../modules/user/model/user.model.js";
+import { Ambulance } from "../../modules/ambulance/model/ambulance.model.js";
 import { asyncHandler } from "../utils/AsyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import type { Request, Response, NextFunction } from "express";

@@ -6,8 +6,12 @@ import {
   createAmbulanceSchema,
 } from "../ambulance.dto/ambulance.dto.js";
 import type { Request, Response } from "express";
-import { Ambulance } from "../../ambulance/ambulance.model/ambulance.model.js";
+import { Ambulance } from "../model/ambulance.model.js";
 import { NODE_ENV } from "../../../config/env.js";
+import {
+  syncAmbulancetoRedis,
+  removeAmbulanceFromRedis,
+} from "../services/ambulance.service.js";
 /**
  * @description Register a new ambulance
  * @route POST /api/v2/ambulances/register
@@ -18,21 +22,11 @@ const registerAmbulance = asyncHandler(async (req: Request, res: Response) => {
   const validationResult = createAmbulanceSchema.safeParse(req.body);
 
   if (!validationResult.success) {
-    throw new ApiError(
-      400,
-      "Validation failed",
-      validationResult.error.issues
-    );
+    throw new ApiError(400, "Validation failed", validationResult.error.issues);
   }
 
-  const {
-    driverName,
-    driverPhone,
-    password,
-    vehicleNumber,
-    status,
-    location,
-  } = validationResult.data;
+  const { driverName, driverPhone, password, vehicleNumber, status, location } =
+    validationResult.data;
 
   // Check if ambulance already exists
   const existingAmbulance = await Ambulance.findOne({
@@ -84,8 +78,14 @@ const registerAmbulance = asyncHandler(async (req: Request, res: Response) => {
 
   res
     .status(201)
-    .cookie("accessToken", accessToken, { ...cookieOptions, maxAge: 15 * 60 * 1000 }) // 15 minutes
-    .cookie("refreshToken", refreshToken, { ...cookieOptions, maxAge: 7 * 24 * 60 * 60 * 1000 }) // 7 days
+    .cookie("accessToken", accessToken, {
+      ...cookieOptions,
+      maxAge: 15 * 60 * 1000,
+    }) // 15 minutes
+    .cookie("refreshToken", refreshToken, {
+      ...cookieOptions,
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    }) // 7 days
     .json(
       new ApiResponse(
         201,
@@ -109,11 +109,7 @@ const loginAmbulance = asyncHandler(async (req: Request, res: Response) => {
   const validationResult = ambulanceLoginSchema.safeParse(req.body);
 
   if (!validationResult.success) {
-    throw new ApiError(
-      400,
-      "Validation failed",
-      validationResult.error.issues
-    );
+    throw new ApiError(400, "Validation failed", validationResult.error.issues);
   }
 
   const { driverPhone, password } = validationResult.data;
@@ -147,6 +143,11 @@ const loginAmbulance = asyncHandler(async (req: Request, res: Response) => {
     "-password -refreshToken"
   );
 
+  // ---------------------------------------------------------
+  // 1. REDIS SYNC: If they log in and are "ready", put them in Redis immediately
+  // ---------------------------------------------------------
+  await syncAmbulancetoRedis(ambulance);
+
   // Set cookies
   const cookieOptions = {
     httpOnly: true,
@@ -156,8 +157,14 @@ const loginAmbulance = asyncHandler(async (req: Request, res: Response) => {
 
   res
     .status(200)
-    .cookie("accessToken", accessToken, { ...cookieOptions, maxAge: 15 * 60 * 1000 }) // 15 minutes
-    .cookie("refreshToken", refreshToken, { ...cookieOptions, maxAge: 7 * 24 * 60 * 60 * 1000 }) // 7 days
+    .cookie("accessToken", accessToken, {
+      ...cookieOptions,
+      maxAge: 15 * 60 * 1000,
+    }) // 15 minutes
+    .cookie("refreshToken", refreshToken, {
+      ...cookieOptions,
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    }) // 7 days
     .json(
       new ApiResponse(
         200,
@@ -177,7 +184,6 @@ const loginAmbulance = asyncHandler(async (req: Request, res: Response) => {
  * @access Private
  */
 const logoutAmbulance = asyncHandler(async (req: Request, res: Response) => {
-  // Middleware not done yet 
   const ambulanceId = (req as any).ambulance?._id;
 
   if (!ambulanceId) {
@@ -192,6 +198,11 @@ const logoutAmbulance = asyncHandler(async (req: Request, res: Response) => {
     },
     { new: true }
   );
+
+  // ---------------------------------------------------------
+  // 2. REDIS SYNC: Explicitly remove them from the pool
+  // ---------------------------------------------------------
+  await removeAmbulanceFromRedis(ambulanceId.toString());
 
   // Clear cookies
   const cookieOptions = {
@@ -223,7 +234,10 @@ const updateAmbulanceStatus = asyncHandler(
     const { status } = req.body;
 
     if (!status || !["ready", "on-trip", "offline"].includes(status)) {
-      throw new ApiError(400, "Invalid status. Must be: ready, on-trip, or offline");
+      throw new ApiError(
+        400,
+        "Invalid status. Must be: ready, on-trip, or offline"
+      );
     }
 
     const ambulance = await Ambulance.findByIdAndUpdate(
@@ -235,6 +249,11 @@ const updateAmbulanceStatus = asyncHandler(
     if (!ambulance) {
       throw new ApiError(404, "Ambulance not found");
     }
+
+    // ---------------------------------------------------------
+    // 3. REDIS SYNC: Add or Remove based on the new status
+    // ---------------------------------------------------------
+    await syncAmbulancetoRedis(ambulance);
 
     res
       .status(200)
@@ -280,6 +299,10 @@ const updateAmbulanceLocation = asyncHandler(
     if (!ambulance) {
       throw new ApiError(404, "Ambulance not found");
     }
+    // ---------------------------------------------------------
+    // 4. REDIS SYNC: If they move, update Redis so dispatch finds them at the NEW spot
+    // ---------------------------------------------------------
+    await syncAmbulancetoRedis(ambulance);
 
     res
       .status(200)
@@ -293,10 +316,38 @@ const updateAmbulanceLocation = asyncHandler(
   }
 );
 
+/**
+ * @description Get current logged in ambulance profile
+ * @route GET /api/v2/ambulance/me
+ * @access Private
+ */
+const getAmbulanceProfile = asyncHandler(
+  async (req: Request, res: Response) => {
+    // req.ambulance is populated by verifyAmbulanceJWT middleware
+    // It is already sanitized (password removed) by the middleware
+    const ambulance = req.ambulance;
+
+    if (!ambulance) {
+      throw new ApiError(401, "Unauthorized - Ambulance not logged in");
+    }
+
+    res
+      .status(200)
+      .json(
+        new ApiResponse(
+          200,
+          ambulance,
+          "Ambulance profile fetched successfully"
+        )
+      );
+  }
+);
+
 export {
   registerAmbulance,
   loginAmbulance,
   logoutAmbulance,
   updateAmbulanceStatus,
   updateAmbulanceLocation,
+  getAmbulanceProfile,
 };

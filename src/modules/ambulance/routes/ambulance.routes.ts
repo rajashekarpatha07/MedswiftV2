@@ -14,8 +14,8 @@ import {
   logoutAmbulance,
   updateAmbulanceStatus,
   updateAmbulanceLocation,
-  getAmbulanceProfile
-} from "../ambulance.controllers/ambulance.controller.js";
+  getAmbulanceProfile,
+} from "../controllers/ambulance.controller.js";
 
 const router = Router();
 

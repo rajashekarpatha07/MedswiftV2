@@ -2,10 +2,8 @@ import type { Request, Response } from "express";
 import { ApiError } from "../../../shared/utils/ApiError.js";
 import { ApiResponse } from "../../../shared/utils/ApiResponce.js";
 import { asyncHandler } from "../../../shared/utils/AsyncHandler.js";
-import {
-  createUserSchema,
-} from "../user.dto/user.dto.js";
-import { User } from "../user.model/user.model.js";
+import { createUserSchema } from "../user.dto/user.dto.js";
+import { User } from "../model/user.model.js";
 import { NODE_ENV } from "../../../config/env.js";
 
 /**
@@ -112,12 +110,14 @@ const loginUser = asyncHandler(async (req: Request, res: Response) => {
   // 2. Determine the query dynamically
   // Since the schema guarantees at least one exists, we just check which one.
   const query = email ? { email } : { phone };
-  console.log(query)
-  console.log(password)
+  console.log(query);
+  console.log(password);
 
   // 3. Find User
-  const user = await User.findOne(query).select("+password +accessToken +refreshToken");
-//   console.log(user)
+  const user = await User.findOne(query).select(
+    "+password +accessToken +refreshToken"
+  );
+  //   console.log(user)
 
   if (!user) {
     // Security Best Practice: Use generic error messages
@@ -209,4 +209,22 @@ const logoutUser = asyncHandler(async (req: Request, res: Response) => {
     .json(new ApiResponse(200, {}, "User logged out successfully"));
 });
 
-export { registerUser, loginUser, logoutUser };
+/**
+ * @description Get current logged in user profile
+ * @route GET /api/v2/user/me
+ * @access Private
+ */
+const getUserProfile = asyncHandler(async (req: Request, res: Response) => {
+  // req.ambulance is populated by verifyAmbulanceJWT middleware
+  // It is already sanitized (password removed) by the middleware
+  const user = req.user;
+  if (!user) throw new ApiError(401, "Unauthorized - User not logged in");
+
+  res
+    .status(200)
+    .json(
+      new ApiResponse(200, user, "User profile fetched successfully")
+    );
+});
+
+export { registerUser, loginUser, logoutUser, getUserProfile };

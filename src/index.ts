@@ -2,6 +2,7 @@ import { app } from "./app.js";
 import dotenv from "dotenv";
 import { ConnectDb } from "./config/Dbconnecton.js";
 import { PORT } from "./config/env.js";
+import redis from "./config/redis.js";
 
 dotenv.config({
   path: "./.env",
@@ -20,3 +21,4 @@ const StartServer = async () => {
 };
 
 StartServer()
+redis.connect()

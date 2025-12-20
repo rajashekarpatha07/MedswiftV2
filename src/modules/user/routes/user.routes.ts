@@ -9,7 +9,8 @@ import {
   registerUser,
   loginUser,
   logoutUser,
-} from "../user.controller/user.controller.js";
+  getUserProfile,
+} from "../controller/user.controller.js";
 import { verifyUserJWT } from "../../../shared/middlewares/auth.middleware.js";
 const router = Router();
 
@@ -49,5 +50,13 @@ router.post(
  * @access  Private
  */
 router.post("/logout", verifyUserJWT, logoutUser);
+
+/**
+ * @route   GET /api/v2/ambulance/me
+ * @desc    Get current ambulance profile
+ * @access  Private
+ */
+
+router.get("/me", verifyUserJWT, getUserProfile);
 
 export const userRoutes: ReturnType<typeof Router> = router;
