@@ -11,7 +11,11 @@ import { NODE_ENV } from "../../../config/env.js";
 import {
   syncAmbulancetoRedis,
   removeAmbulanceFromRedis,
+  findNearbyAmbulances,
+  getActiveAmbulanceCount,
+  getAllActiveAmbulanceIds
 } from "../services/ambulance.service.js";
+
 /**
  * @description Register a new ambulance
  * @route POST /api/v2/ambulances/register
@@ -343,6 +347,92 @@ const getAmbulanceProfile = asyncHandler(
   }
 );
 
+/**
+ * @description Find nearby ambulances with automatic failover (5km → 10km → 17km → 30km)
+ * @route GET /api/v2/ambulance/nearby
+ * @access Public
+ */
+const getNearbyAmbulances = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { longitude, latitude, limit } = req.query;
+
+    // Validate required parameters
+    if (!longitude || !latitude) {
+      throw new ApiError(
+        400,
+        "Longitude and latitude are required query parameters"
+      );
+    }
+
+    // Parse and validate values
+    const lng = parseFloat(longitude as string);
+    const lat = parseFloat(latitude as string);
+    const maxResults = limit ? parseInt(limit as string, 10) : 10;
+
+    // Validate ranges
+    if (isNaN(lng) || lng < -180 || lng > 180) {
+      throw new ApiError(400, "Invalid longitude. Must be between -180 and 180");
+    }
+
+    if (isNaN(lat) || lat < -90 || lat > 90) {
+      throw new ApiError(400, "Invalid latitude. Must be between -90 and 90");
+    }
+
+    if (isNaN(maxResults) || maxResults <= 0 || maxResults > 50) {
+      throw new ApiError(400, "Invalid limit. Must be between 1 and 50");
+    }
+
+    // Find nearby ambulances with automatic failover
+    const ambulances = await findNearbyAmbulances(lng, lat, maxResults);
+
+    // Check if ambulances were found
+    if (ambulances.length === 0) {
+      return res.status(200).json(
+        new ApiResponse(
+          200,
+          {
+            count: 0,
+            ambulances: [],
+            message: "No ambulance found nearby. Emergency request sent to admin. Ambulance is on the way."
+          },
+          "No ambulances available within 30km"
+        )
+      );
+    }
+
+    // Return found ambulances
+    res.status(200).json(
+      new ApiResponse(
+        200,
+        {
+          count: ambulances.length,
+          ambulances: ambulances,
+        },
+        `Found ${ambulances.length} nearby ambulance(s)`
+      )
+    );
+  }
+);
+/**
+ * @description Get statistics about active ambulances in Redis
+ * @route GET /api/v2/ambulance/stats
+ * @access Admin only
+ */
+const getAmbulanceStats = asyncHandler(async (req: Request, res: Response) => {
+  const activeCount = await getActiveAmbulanceCount();
+  const activeIds = await getAllActiveAmbulanceIds();
+
+  res.status(200).json(
+    new ApiResponse(
+      200,
+      {
+        activeAmbulances: activeCount,
+        ambulanceIds: activeIds,
+      },
+      "Ambulance statistics retrieved successfully"
+    )
+  );
+});
 export {
   registerAmbulance,
   loginAmbulance,
@@ -350,4 +440,6 @@ export {
   updateAmbulanceStatus,
   updateAmbulanceLocation,
   getAmbulanceProfile,
+  getNearbyAmbulances,
+  getAmbulanceStats
 };

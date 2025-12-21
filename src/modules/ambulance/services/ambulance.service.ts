@@ -1,4 +1,5 @@
 import redis from "../../../config/redis.js";
+import { Ambulance } from "../model/ambulance.model.js";
 import type { IAmbulance } from "../model/ambulance.model.js";
 import type { Types } from "mongoose";
 
@@ -30,7 +31,7 @@ const syncAmbulancetoRedis = async (
     } else {
       // ZREM key member
       await redis.zRem(AMBULANCE_GEO_KEY, ambulanceId);
-      console.log(`🚑 Redis: Removed ${ambulanceId} from active pool`);
+      console.log(`Redis: Removed ${ambulanceId} from active pool`);
     }
   } catch (error) {
     console.error("Redis Sync Error:", error);
@@ -51,4 +52,113 @@ const removeAmbulanceFromRedis = async (ambulanceId: string) => {
   }
 };
 
-export { syncAmbulancetoRedis, removeAmbulanceFromRedis };
+/**
+ * Find nearby ambulances with automatic radius failover
+ * Searches at: 5km → 10km → 17km → 30km
+ * @param longitude - User's longitude
+ * @param latitude - User's latitude
+ * @param limit - Maximum number of results (default: 10)
+ * @returns Array of ambulances or empty array with message
+ */
+interface NearbyAmbulanceResult {
+  ambulanceId: string;
+  distance: number; // in meters
+  ambulanceData: IAmbulance | null;
+}
+
+const findNearbyAmbulances = async (
+  longitude: number,
+  latitude: number,
+  limit: number = 10
+): Promise<NearbyAmbulanceResult[]> => {
+  // Define search radii in kilometers: 5 → 10 → 17 → 30
+  const searchRadii = [5, 10, 17, 30];
+
+  console.log(`🔍 Searching for ambulances near (${longitude}, ${latitude})`);
+
+  // Try each radius until we find ambulances
+  for (const radius of searchRadii) {
+    console.log(`🎯 Searching within ${radius}km radius...`);
+
+    try {
+      // GEOSEARCH in Redis
+      const results = await redis.geoSearch(
+        AMBULANCE_GEO_KEY,
+        { longitude, latitude },
+        { radius, unit: "km" }
+      );
+
+      if (results && results.length > 0) {
+        // Extract ambulance IDs from Redis
+        const ambulanceIds = results.map((result: any) => result.member);
+
+        // Fetch full ambulance data from MongoDB
+        const ambulances = await Ambulance.find({
+          _id: { $in: ambulanceIds },
+          status: "ready",
+        }).select("-password -refreshToken");
+
+        // Create map for quick lookup
+        const ambulanceMap = new Map(
+          ambulances.map((amb) => [amb._id.toString(), amb])
+        );
+
+        // Combine Redis distance with MongoDB data
+        const nearbyAmbulances: NearbyAmbulanceResult[] = results
+          .map((result: any) => ({
+            ambulanceId: result.member,
+            distance: Math.round(parseFloat(result.distance) * 1000), // km to meters
+            ambulanceData: ambulanceMap.get(result.member) || null,
+          }))
+          .filter((result) => result.ambulanceData !== null);
+
+        if (nearbyAmbulances.length > 0) {
+          console.log(`✅ Found ${nearbyAmbulances.length} ambulance(s) at ${radius}km`);
+          return nearbyAmbulances;
+        }
+      }
+
+      console.log(`⚠️ No ambulances at ${radius}km, expanding search...`);
+    } catch (error) {
+      console.error(`❌ Error searching at ${radius}km:`, error);
+    }
+  }
+
+  // No ambulances found after all attempts
+  console.log(`❌ No ambulances found within 30km`);
+  return [];
+};
+
+/**
+ * Get ambulance count in Redis (for debugging/monitoring)
+ */
+const getActiveAmbulanceCount = async (): Promise<number> => {
+  try {
+    const count = await redis.zCard(AMBULANCE_GEO_KEY);
+    return count;
+  } catch (error) {
+    console.error("Error getting ambulance count:", error);
+    return 0;
+  }
+};
+
+/**
+ * Get all ambulance IDs in Redis (for debugging)
+ */
+const getAllActiveAmbulanceIds = async (): Promise<string[]> => {
+  try {
+    const members = await redis.zRange(AMBULANCE_GEO_KEY, 0, -1);
+    return members;
+  } catch (error) {
+    console.error("Error getting all ambulance IDs:", error);
+    return [];
+  }
+};
+
+export {
+  syncAmbulancetoRedis,
+  removeAmbulanceFromRedis,
+  findNearbyAmbulances,
+  getActiveAmbulanceCount,
+  getAllActiveAmbulanceIds,
+};

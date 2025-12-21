@@ -15,6 +15,8 @@ import {
   updateAmbulanceStatus,
   updateAmbulanceLocation,
   getAmbulanceProfile,
+  getNearbyAmbulances,
+  getAmbulanceStats,
 } from "../controllers/ambulance.controller.js";
 
 const router = Router();
@@ -44,6 +46,14 @@ router.post(
   validate(z.object({ body: ambulanceLoginSchema })),
   loginAmbulance
 );
+
+/**
+ * @route   GET /api/v2/ambulance/nearby
+ * @desc    Find nearby ambulances with automatic failover (5km → 10km → 17km → 30km)
+ * @access  Public
+ * @query   longitude, latitude, limit (optional, default: 10)
+ */
+router.get("/nearby", getNearbyAmbulances);
 
 // ============================================
 // PROTECTED ROUTES
@@ -86,5 +96,12 @@ router.patch(
  * @access  Private
  */
 router.get("/me", verifyAmbulanceJWT, getAmbulanceProfile);
+
+/**
+ * @route   GET /api/v2/ambulance/stats
+ * @desc    Get active ambulance statistics
+ * @access  Admin Only
+ */
+router.get("/stats", getAmbulanceStats);
 
 export const ambulanceRoutes: ReturnType<typeof Router> = router;
