@@ -15,6 +15,8 @@ import { userRoutes } from "./modules/user/routes/user.routes.js";
 //AmbulanceRoutes import
 import { ambulanceRoutes } from './modules/ambulance/routes/ambulance.routes.js';
 
+//AdminRoutes import
+import { adminRoutes } from "./modules/admin/routes/admin.routes.js";
 const app: Application = express();
 
 app.use(
@@ -33,6 +35,9 @@ app.use("/api/v2/user", userRoutes)
 
 //AmbulanceRoutes
 app.use("/api/v2/ambulance", ambulanceRoutes)
+
+//AdminRoutes
+app.use("/api/v2/admin", adminRoutes)
 
 // Global Error Handler middleware
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {

@@ -5,6 +5,7 @@ import { ApiError } from "../utils/ApiError.js";
 import type { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import { ACCESS_TOKEN_SECRET } from "../../config/env.js";
+import { Admin } from "../../modules/admin/models/admin.model.js";
 
 // Extend Express Request type
 declare global {
@@ -12,6 +13,7 @@ declare global {
     interface Request {
       user?: any;
       ambulance?: any;
+      admin?:any;
     }
   }
 }
@@ -19,7 +21,7 @@ declare global {
 // JWT Payload interface
 interface JwtPayload {
   id: string;
-  role?: "ambulance"; // Only ambulance tokens have role
+  role?: "ambulance" | "admin" | "user"; // Only ambulance tokens have role
   iat?: number;
   exp?: number;
 }
@@ -163,4 +165,39 @@ const verifyJWT = asyncHandler(
   }
 );
 
-export { verifyJWT, verifyUserJWT, verifyAmbulanceJWT };
+
+/**
+ * @description Verify JWT and attach ADMIN to request
+ * @middleware
+ */
+const verifyAdminJWT = asyncHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const token = req.cookies?.accessToken || req.header("Authorization")?.replace("Bearer ", "");
+
+    if (!token) {
+      throw new ApiError(401, "Unauthorized - No token provided");
+    }
+
+    try {
+      const decodedToken = jwt.verify(token, ACCESS_TOKEN_SECRET) as JwtPayload;
+
+      // STRICT CHECK: Role must be admin
+      if (decodedToken.role !== "admin") {
+        throw new ApiError(403, "Forbidden - Requires Admin Privileges");
+      }
+
+      const admin = await Admin.findById(decodedToken.id).select("-password -refreshToken");
+
+      if (!admin) {
+        throw new ApiError(401, "Unauthorized - Admin not found");
+      }
+
+      req.admin = admin;
+      next();
+    } catch (error) {
+      throw new ApiError(401, "Unauthorized - Invalid or expired token");
+    }
+  }
+);
+
+export { verifyJWT, verifyUserJWT, verifyAmbulanceJWT, verifyAdminJWT};
