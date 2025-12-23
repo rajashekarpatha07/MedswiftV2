@@ -280,8 +280,12 @@ const updateAmbulanceLocation = asyncHandler(
       throw new ApiError(401, "Unauthorized");
     }
 
+    // Since we are using Zod middleware in the route (ambulance.routes.ts), 
+    // req.body is guaranteed to have the correct structure if we reach here.
+    // DTO: { location: { type: "Point", coordinates: [lng, lat] } }
     const { location } = req.body;
 
+    // Double-check validation (Optional but safe)
     if (
       !location ||
       location.type !== "Point" ||
@@ -294,6 +298,7 @@ const updateAmbulanceLocation = asyncHandler(
       );
     }
 
+    // Update MongoDB
     const ambulance = await Ambulance.findByIdAndUpdate(
       ambulanceId,
       { location },
@@ -303,9 +308,11 @@ const updateAmbulanceLocation = asyncHandler(
     if (!ambulance) {
       throw new ApiError(404, "Ambulance not found");
     }
+
     // ---------------------------------------------------------
     // 4. REDIS SYNC: If they move, update Redis so dispatch finds them at the NEW spot
     // ---------------------------------------------------------
+    // Note: If their status is "on-trip", this will ensure they stay removed from the "ready" pool
     await syncAmbulancetoRedis(ambulance);
 
     res

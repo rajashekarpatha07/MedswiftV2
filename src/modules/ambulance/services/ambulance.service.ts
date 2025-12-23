@@ -2,41 +2,54 @@ import redis from "../../../config/redis.js";
 import { Ambulance } from "../model/ambulance.model.js";
 import type { IAmbulance } from "../model/ambulance.model.js";
 import type { Types } from "mongoose";
-
 const AMBULANCE_GEO_KEY = "ambulance_locations";
 
+export interface IAmbulanceLocation {
+  type: "Point";
+  coordinates: [number, number]; // [longitude, latitude]
+}
+export interface IAmbulanceSyncPayload {
+  _id: Types.ObjectId | string;
+  status: string; // "ready" | "on-trip" | "offline"
+  location: IAmbulanceLocation;
+}
 /**
  * Syncs the ambulance state with Redis.
  * - If status is 'ready': Adds to Redis GEO index.
  * - If status is 'busy'/'offline': Removes from Redis GEO index.
  */
-
 const syncAmbulancetoRedis = async (
-  ambulance: IAmbulance | { _id: Types.ObjectId; status: string; location: any }
+  ambulance: IAmbulanceSyncPayload | IAmbulance
 ): Promise<void> => {
   const { _id, status, location } = ambulance;
   const ambulanceId = _id.toString();
-
   try {
+    // Only 'ready' ambulances should be in the search pool
     if (status === "ready" && location?.coordinates) {
       const [lng, lat] = location.coordinates;
 
-      // GEOADD key longitude latitude member
-      await redis.geoAdd(AMBULANCE_GEO_KEY, {
-        member: ambulanceId,
-        longitude: lng,
-        latitude: lat,
-      });
-      console.log(`Redis: Added ${ambulanceId} to active pool`);
+      // Validate coordinates before sending to Redis
+      if (typeof lng === "number" && typeof lat === "number") {
+        // GEOADD key longitude latitude member
+        await redis.geoAdd(AMBULANCE_GEO_KEY, {
+          member: ambulanceId,
+          longitude: lng,
+          latitude: lat,
+        });
+        console.log(`Redis: Added ${ambulanceId} to active pool`);
+      } else {
+        console.warn(`Redis: Invalid coordinates for ${ambulanceId}`);
+      }
     } else {
       // ZREM key member
+      // We remove them if they are 'offline' OR 'on-trip' (busy)
       await redis.zRem(AMBULANCE_GEO_KEY, ambulanceId);
-      console.log(`Redis: Removed ${ambulanceId} from active pool`);
+      console.log(
+        `Redis: Removed ${ambulanceId} from active pool (Status: ${status})`
+      );
     }
   } catch (error) {
     console.error("Redis Sync Error:", error);
-    // Don't throw error here, just log it.
-    // We don't want to fail the HTTP request just because Redis hiccuped.
   }
 };
 
@@ -62,10 +75,17 @@ const removeAmbulanceFromRedis = async (ambulanceId: string) => {
  */
 interface NearbyAmbulanceResult {
   ambulanceId: string;
-  distance: number; // in meters
+  distance: number // in meters
   ambulanceData: IAmbulance | null;
 }
 
+/**
+ * Find nearby ambulances with automatic radius failover
+ * FIXES APPLIED:
+ * 1. Uses `geoSearchWith` to ensure we get distance data.
+ * 2. Uses `COUNT: limit` to optimize Redis performance.
+ * 3. Uses `SORT: "ASC"` to get nearest drivers first.
+ */
 const findNearbyAmbulances = async (
   longitude: number,
   latitude: number,
@@ -76,21 +96,25 @@ const findNearbyAmbulances = async (
 
   console.log(`🔍 Searching for ambulances near (${longitude}, ${latitude})`);
 
-  // Try each radius until we find ambulances
   for (const radius of searchRadii) {
     console.log(`🎯 Searching within ${radius}km radius...`);
 
     try {
-      // GEOSEARCH in Redis
-      const results = await redis.geoSearch(
+      // BUG FIX: use geoSearchWith to get objects { member, distance }
+      const results = await redis.geoSearchWith(
         AMBULANCE_GEO_KEY,
         { longitude, latitude },
-        { radius, unit: "km" }
+        { radius, unit: "km" },
+        ["WITHDIST", "WITHCOORD"], // what info you want back
+        {
+          SORT: "ASC", // nearest first
+          COUNT: limit,
+        }
       );
 
       if (results && results.length > 0) {
-        // Extract ambulance IDs from Redis
-        const ambulanceIds = results.map((result: any) => result.member);
+        // Extract ambulance IDs from Redis results
+        const ambulanceIds = results.map((result) => result.member);
 
         // Fetch full ambulance data from MongoDB
         const ambulances = await Ambulance.find({
@@ -105,15 +129,17 @@ const findNearbyAmbulances = async (
 
         // Combine Redis distance with MongoDB data
         const nearbyAmbulances: NearbyAmbulanceResult[] = results
-          .map((result: any) => ({
+          .map((result) => ({
             ambulanceId: result.member,
-            distance: Math.round(parseFloat(result.distance) * 1000), // km to meters
+            distance: result.distance ? Math.round(parseFloat(result.distance) * 1000) : 0, // Convert km string to meters
             ambulanceData: ambulanceMap.get(result.member) || null,
           }))
           .filter((result) => result.ambulanceData !== null);
 
         if (nearbyAmbulances.length > 0) {
-          console.log(`✅ Found ${nearbyAmbulances.length} ambulance(s) at ${radius}km`);
+          console.log(
+            `✅ Found ${nearbyAmbulances.length} ambulance(s) at ${radius}km`
+          );
           return nearbyAmbulances;
         }
       }
@@ -124,7 +150,6 @@ const findNearbyAmbulances = async (
     }
   }
 
-  // No ambulances found after all attempts
   console.log(`❌ No ambulances found within 30km`);
   return [];
 };
