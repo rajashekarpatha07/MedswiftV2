@@ -6,6 +6,7 @@ import type { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import { ACCESS_TOKEN_SECRET } from "../../config/env.js";
 import { Admin } from "../../modules/admin/models/admin.model.js";
+import { Hospital } from "../../modules/hospital/model/hospital.model.js";
 
 // Extend Express Request type
 declare global {
@@ -14,6 +15,7 @@ declare global {
       user?: any;
       ambulance?: any;
       admin?:any;
+      hospital?:any;
     }
   }
 }
@@ -21,7 +23,7 @@ declare global {
 // JWT Payload interface
 interface JwtPayload {
   id: string;
-  role?: "ambulance" | "admin" | "user"; // Only ambulance tokens have role
+  role?: "ambulance" | "admin" | "user" | "hospital"; // Only ambulance tokens have role
   iat?: number;
   exp?: number;
 }
@@ -116,12 +118,11 @@ const verifyAmbulanceJWT = asyncHandler(
 );
 
 /**
- * @description Generic JWT verification (detects user or ambulance based on token)
+ * @description Verify JWT and attach hospital to request
  * @middleware
  */
-const verifyJWT = asyncHandler(
+const verifyHospitalJWT = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
-    // Extract token from cookies or Authorization header
     const token =
       req.cookies?.accessToken ||
       req.header("Authorization")?.replace("Bearer ", "");
@@ -130,7 +131,6 @@ const verifyJWT = asyncHandler(
       throw new ApiError(401, "Unauthorized - No token provided");
     }
 
-    // Verify token
     let decodedToken: JwtPayload;
     try {
       decodedToken = jwt.verify(token, ACCESS_TOKEN_SECRET) as JwtPayload;
@@ -138,27 +138,85 @@ const verifyJWT = asyncHandler(
       throw new ApiError(401, "Unauthorized - Invalid or expired token");
     }
 
-    // Check if it's an ambulance or user based on role
-    if (decodedToken.role === "ambulance") {
-      const ambulance = await Ambulance.findById(decodedToken.id).select(
-        "-password -refreshToken"
-      );
+    if (decodedToken.role !== "hospital") {
+      throw new ApiError(403, "Forbidden - Hospital token required");
+    }
 
-      if (!ambulance) {
-        throw new ApiError(401, "Unauthorized - Ambulance not found");
+    const hospital = await Hospital.findById(decodedToken.id).select(
+      "-password -refreshToken"
+    );
+
+    if (!hospital) {
+      throw new ApiError(401, "Unauthorized - Hospital not found");
+    }
+
+    req.hospital = hospital;
+    next();
+  }
+);
+
+/**
+ * @description Generic JWT verification (detects entity based on token role)
+ * @middleware
+ */
+const verifyJWT = asyncHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const token =
+      req.cookies?.accessToken ||
+      req.header("Authorization")?.replace("Bearer ", "");
+
+    if (!token) {
+      throw new ApiError(401, "Unauthorized - No token provided");
+    }
+
+    let decodedToken: JwtPayload;
+    try {
+      decodedToken = jwt.verify(token, ACCESS_TOKEN_SECRET) as JwtPayload;
+    } catch (error) {
+      throw new ApiError(401, "Unauthorized - Invalid or expired token");
+    }
+
+    // Route to appropriate entity based on role
+    switch (decodedToken.role) {
+      case "ambulance": {
+        const ambulance = await Ambulance.findById(decodedToken.id).select(
+          "-password -refreshToken"
+        );
+        if (!ambulance) {
+          throw new ApiError(401, "Unauthorized - Ambulance not found");
+        }
+        req.ambulance = ambulance;
+        break;
       }
-
-      req.ambulance = ambulance;
-    } else {
-      const user = await User.findById(decodedToken.id).select(
-        "-password -refreshToken"
-      );
-
-      if (!user) {
-        throw new ApiError(401, "Unauthorized - User not found");
+      case "hospital": {
+        const hospital = await Hospital.findById(decodedToken.id).select(
+          "-password -refreshToken"
+        );
+        if (!hospital) {
+          throw new ApiError(401, "Unauthorized - Hospital not found");
+        }
+        req.hospital = hospital;
+        break;
       }
-
-      req.user = user;
+      case "admin": {
+        const admin = await Admin.findById(decodedToken.id).select(
+          "-password -refreshToken"
+        );
+        if (!admin) {
+          throw new ApiError(401, "Unauthorized - Admin not found");
+        }
+        req.admin = admin;
+        break;
+      }
+      default: {
+        const user = await User.findById(decodedToken.id).select(
+          "-password -refreshToken"
+        );
+        if (!user) {
+          throw new ApiError(401, "Unauthorized - User not found");
+        }
+        req.user = user;
+      }
     }
 
     next();
@@ -200,4 +258,4 @@ const verifyAdminJWT = asyncHandler(
   }
 );
 
-export { verifyJWT, verifyUserJWT, verifyAmbulanceJWT, verifyAdminJWT};
+export { verifyJWT, verifyUserJWT, verifyAmbulanceJWT, verifyAdminJWT, verifyHospitalJWT};

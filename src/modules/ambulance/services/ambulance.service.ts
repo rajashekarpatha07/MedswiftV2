@@ -81,7 +81,6 @@ interface NearbyAmbulanceResult {
 
 /**
  * Find nearby ambulances with automatic radius failover
- * FIXES APPLIED:
  * 1. Uses `geoSearchWith` to ensure we get distance data.
  * 2. Uses `COUNT: limit` to optimize Redis performance.
  * 3. Uses `SORT: "ASC"` to get nearest drivers first.
@@ -100,7 +99,7 @@ const findNearbyAmbulances = async (
     console.log(`🎯 Searching within ${radius}km radius...`);
 
     try {
-      // BUG FIX: use geoSearchWith to get objects { member, distance }
+      // use geoSearchWith to get objects { member, distance }
       const results = await redis.geoSearchWith(
         AMBULANCE_GEO_KEY,
         { longitude, latitude },

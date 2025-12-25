@@ -15,8 +15,12 @@ import { userRoutes } from "./modules/user/routes/user.routes.js";
 //AmbulanceRoutes import
 import { ambulanceRoutes } from './modules/ambulance/routes/ambulance.routes.js';
 
+//HospitalRoutes
+import { hospitalRoutes } from './modules/hospital/routes/hospital.routes.js';
+
 //AdminRoutes import
 import { adminRoutes } from "./modules/admin/routes/admin.routes.js";
+
 const app: Application = express();
 
 app.use(
@@ -39,17 +43,23 @@ app.use("/api/v2/ambulance", ambulanceRoutes)
 //AdminRoutes
 app.use("/api/v2/admin", adminRoutes)
 
+//HospitalRoutes
+app.use("/api/v2/hospital", hospitalRoutes)
 // Global Error Handler middleware
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+  // If the error is a known ApiError
   if (err instanceof ApiError) {
     return res
       .status(err.statusCode)
       .json(new ApiResponse(err.statusCode, err.data, err.message));
   }
-  return err
+
+  // Log the unexpected error for debugging on the server console
+  console.error("Internal Server Error:", err);
+
+  // FIX: Use 'res' instead of 'err' to send the response
+  return res
     .status(500)
     .json(new ApiResponse(500, null, "Internal Server Error"));
-
-  next();
 });
 export { app };

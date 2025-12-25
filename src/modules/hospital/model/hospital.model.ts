@@ -4,7 +4,7 @@ import {
   generateRefreshToken,
   verifyPassword,
   hashPassword,
-} from "../../shared/utils/auth.util.js";
+} from "../../../shared/utils/auth.util.js";
 
 interface IBloodStock {
   A_positive: number;
