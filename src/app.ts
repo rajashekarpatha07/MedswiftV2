@@ -21,6 +21,9 @@ import { hospitalRoutes } from './modules/hospital/routes/hospital.routes.js';
 //AdminRoutes import
 import { adminRoutes } from "./modules/admin/routes/admin.routes.js";
 
+//TripRoutes import
+import tripRoutes from "./modules/trip/routes/trip.routes.js";
+
 const app: Application = express();
 
 app.use(
@@ -45,6 +48,10 @@ app.use("/api/v2/admin", adminRoutes)
 
 //HospitalRoutes
 app.use("/api/v2/hospital", hospitalRoutes)
+
+//TripRoutes
+app.use("/api/v2/trip", tripRoutes)
+
 // Global Error Handler middleware
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {
   // If the error is a known ApiError

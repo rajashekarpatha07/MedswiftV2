@@ -26,8 +26,9 @@ export interface IPatientSnapshot {
 
 export interface ITrip extends Document {
   userId: mongoose.Types.ObjectId;
-  ambulanceId?: mongoose.Types.ObjectId;
-  destinationHospitalId?: mongoose.Types.ObjectId;
+  // FIX: Allow null because schema default is null and exactOptionalPropertyTypes is true
+  ambulanceId?: mongoose.Types.ObjectId | null | string;
+  destinationHospitalId?: mongoose.Types.ObjectId | null | string;
 
   status: TripStatus;
 
@@ -132,6 +133,5 @@ const TripSchema = new Schema<ITrip>(
     timestamps: true,
   }
 );
-
 
 export const Trip = mongoose.model<ITrip>("Trip", TripSchema);

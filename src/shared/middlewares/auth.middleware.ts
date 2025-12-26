@@ -23,7 +23,7 @@ declare global {
 // JWT Payload interface
 interface JwtPayload {
   id: string;
-  role?: "ambulance" | "admin" | "user" | "hospital"; // Only ambulance tokens have role
+  role?: "ambulance" | "admin" | "user" | "hospital"; 
   iat?: number;
   exp?: number;
 }
