@@ -26,7 +26,7 @@ export interface IPatientSnapshot {
 
 export interface ITrip extends Document {
   userId: mongoose.Types.ObjectId;
-  // FIX: Allow null because schema default is null and exactOptionalPropertyTypes is true
+
   ambulanceId?: mongoose.Types.ObjectId | null | string;
   destinationHospitalId?: mongoose.Types.ObjectId | null | string;
 

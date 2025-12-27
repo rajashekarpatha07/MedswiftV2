@@ -22,7 +22,7 @@ import { hospitalRoutes } from './modules/hospital/routes/hospital.routes.js';
 import { adminRoutes } from "./modules/admin/routes/admin.routes.js";
 
 //TripRoutes import
-import tripRoutes from "./modules/trip/routes/trip.routes.js";
+import { tripRoutes } from "./modules/trip/routes/trip.routes.js";
 
 const app: Application = express();
 

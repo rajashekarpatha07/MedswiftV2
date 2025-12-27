@@ -1,28 +1,67 @@
+// src/modules/trip/trip.dto/trip.dto.ts
+
 import { z } from "zod";
 
-// Schema for trip request (from user)
+// Location schema
+const locationSchema = z.tuple([
+  z.number().min(-180).max(180), // longitude
+  z.number().min(-90).max(90),   // latitude
+]);
+
+// Create trip request schema
 export const createTripSchema = z.object({
-  pickupAddress: z.string().trim().min(1, "Pickup address required"),
-  pickupCoords: z.tuple([z.number().min(-180).max(180), z.number().min(-90).max(90)]), // [lng, lat]
-  preferredBloodType: z.enum(["A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"]).optional(),
-  medicalNotes: z.string().optional(), // e.g., allergies
-  destinationHospitalId: z.string().optional(), // Optional; auto-suggest nearest if omitted
+  pickupAddress: z.string().trim().optional(),
+  pickupCoordinates: locationSchema,
+  destinationHospitalId: z.string().optional(),
+  bloodType: z
+    .enum(["A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"])
+    .optional(),
+  requireBeds: z.boolean().default(false),
 });
 
-// Schema for ambulance accepting a trip
-export const acceptTripSchema = z.object({
-  tripId: z.string().min(1, "Trip ID required"),
-});
-
-// Schema for updating trip status (e.g., by ambulance or system)
+// Update trip status schema
 export const updateTripStatusSchema = z.object({
-  status: z.enum(["SEARCHING", "ACCEPTED", "ARRIVED_PICKUP", "EN_ROUTE_HOSPITAL", "ARRIVED_HOSPITAL", "COMPLETED", "CANCELLED"]),
-  location: z.object({ // Optional current location
-    type: z.literal("Point"),
-    coordinates: z.tuple([z.number(), z.number()]),
-  }).optional(),
+  status: z.enum([
+    "SEARCHING",
+    "ACCEPTED",
+    "ARRIVED_PICKUP",
+    "EN_ROUTE_HOSPITAL",
+    "ARRIVED_HOSPITAL",
+    "COMPLETED",
+    "CANCELLED",
+  ]),
+  location: locationSchema.optional(),
 });
 
+// Assign ambulance schema
+export const assignAmbulanceSchema = z.object({
+  ambulanceId: z.string().min(1, "Ambulance ID is required"),
+});
+
+// Cancel trip schema
+export const cancelTripSchema = z.object({
+  reason: z.string().trim().optional(),
+});
+
+// Query schema for trip history
+export const tripHistoryQuerySchema = z.object({
+  limit: z.coerce.number().min(1).max(50).default(10),
+  status: z
+    .enum([
+      "SEARCHING",
+      "ACCEPTED",
+      "ARRIVED_PICKUP",
+      "EN_ROUTE_HOSPITAL",
+      "ARRIVED_HOSPITAL",
+      "COMPLETED",
+      "CANCELLED",
+    ])
+    .optional(),
+});
+
+// Type exports
 export type CreateTripInput = z.infer<typeof createTripSchema>;
-export type AcceptTripInput = z.infer<typeof acceptTripSchema>;
 export type UpdateTripStatusInput = z.infer<typeof updateTripStatusSchema>;
+export type AssignAmbulanceInput = z.infer<typeof assignAmbulanceSchema>;
+export type CancelTripInput = z.infer<typeof cancelTripSchema>;
+export type TripHistoryQuery = z.infer<typeof tripHistoryQuerySchema>;
