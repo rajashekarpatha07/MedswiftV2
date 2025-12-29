@@ -1,25 +1,33 @@
+// src/config/socket.ts
 import { Server as SocketIOServer } from "socket.io";
 import type { Server as HttpServer } from "http";
-import { ACCESS_TOKEN_SECRET } from  "../config/env.js"
+import type { Socket } from "socket.io";
+import { ACCESS_TOKEN_SECRET } from "./env.js";
 import jwt from "jsonwebtoken";
-import cookie from "cookie"; 
+import cookie from "cookie";
 
 let io: SocketIOServer;
+
+interface AuthenticatedSocket extends Socket {
+  user: {
+    id: string;
+    role: "user" | "ambulance" | "hospital" | "admin";
+  };
+}
 
 const initializeSocket = (httpServer: HttpServer) => {
   io = new SocketIOServer(httpServer, {
     cors: {
-      origin: "http://localhost:5000", 
+      origin: "http://127.0.0.1:5500/",
       credentials: true,
     },
-    // Increase timeout if needed for unstable 4G connections
-    pingTimeout: 60000, 
+    pingTimeout: 60000,
+    pingInterval: 25000,
   });
 
-  // Middleware for Authentication
+  // Authentication Middleware
   io.use((socket, next) => {
     try {
-      // 1. Parse cookies from the handshake
       const cookies = cookie.parse(socket.handshake.headers.cookie || "");
       const token = cookies.accessToken;
 
@@ -27,12 +35,8 @@ const initializeSocket = (httpServer: HttpServer) => {
         return next(new Error("Authentication error: No token provided"));
       }
 
-      // 2. Verify Token
       const decoded = jwt.verify(token, ACCESS_TOKEN_SECRET) as any;
-      
-      // 3. Attach user info to the socket instance for later use
-      // We extend the socket object to include user data
-      (socket as any).user = decoded; 
+      (socket as AuthenticatedSocket).user = decoded;
 
       next();
     } catch (error) {
@@ -41,33 +45,126 @@ const initializeSocket = (httpServer: HttpServer) => {
   });
 
   io.on("connection", (socket) => {
-    const user = (socket as any).user;
-    console.log(`🔌 User connected: ${user.id} (Role: ${user.role})`);
+    const socket_ = socket as AuthenticatedSocket;
+    const { id: userId, role } = socket_.user;
+    console.log(`🔌 ${role.toUpperCase()} connected: ${userId}`);
 
-    // 1. Join a "Room" based on their User ID
-    // This allows us to do: io.to(userId).emit(...)
-    socket.join(user.id);
-    
-    // 2. If it's an ambulance/hospital, maybe join a role-specific room?
-    if (user.role === 'ambulance') {
-        socket.join('active_ambulances');
+    // Join user-specific room
+    socket.join(userId);
+
+    // Role-based room joining
+    if (role === "ambulance") {
+      socket.join("active_ambulances");
+      console.log(`🚑 Ambulance ${userId} joined active pool`);
+    } else if (role === "user") {
+      socket.join("active_users");
     }
 
+    // ============================================
+    // AMBULANCE-SPECIFIC EVENTS
+    // ============================================
+    if (role === "ambulance") {
+      // Ambulance sends location updates
+      socket.on("ambulance:location:update", (data: { tripId?: string; location: [number, number] }) => {
+        console.log(`📍 Ambulance ${userId} location update:`, data);
+        
+        // If they're on a trip, broadcast to that trip room
+        if (data.tripId) {
+          socket.to(`trip:${data.tripId}`).emit("ambulance:location:changed", {
+            ambulanceId: userId,
+            location: data.location,
+            timestamp: new Date(),
+          });
+        }
+      });
+
+      // Ambulance accepts a trip
+      socket.on("trip:accept", (data: { tripId: string }) => {
+        console.log(`✅ Ambulance ${userId} accepting trip ${data.tripId}`);
+        
+        // Join the trip room
+        socket.join(`trip:${data.tripId}`);
+        
+        // Notify the user
+        io.to(`trip:${data.tripId}`).emit("trip:accepted", {
+          tripId: data.tripId,
+          ambulanceId: userId,
+          message: "Ambulance has accepted your request",
+          timestamp: new Date(),
+        });
+      });
+
+      // Ambulance updates trip status
+      socket.on("trip:status:update", (data: { tripId: string; status: string; location?: [number, number] }) => {
+        console.log(`🔄 Trip ${data.tripId} status update: ${data.status}`);
+        
+        io.to(`trip:${data.tripId}`).emit("trip:status:changed", {
+          tripId: data.tripId,
+          status: data.status,
+          location: data.location,
+          timestamp: new Date(),
+        });
+      });
+    }
+
+    // ============================================
+    // USER-SPECIFIC EVENTS
+    // ============================================
+    if (role === "user") {
+      // User joins their active trip room (if any)
+      socket.on("trip:join", (data: { tripId: string }) => {
+        socket.join(`trip:${data.tripId}`);
+        console.log(`👤 User ${userId} joined trip room: ${data.tripId}`);
+      });
+
+      // User cancels trip
+      socket.on("trip:cancel", (data: { tripId: string; reason?: string }) => {
+        console.log(`❌ User ${userId} cancelled trip ${data.tripId}`);
+        
+        io.to(`trip:${data.tripId}`).emit("trip:cancelled", {
+          tripId: data.tripId,
+          cancelledBy: "user",
+          reason: data.reason,
+          timestamp: new Date(),
+        });
+      });
+    }
+
+    // ============================================
+    // CHAT MESSAGES (User ↔ Ambulance)
+    // ============================================
+    socket.on("trip:message:send", (data: { tripId: string; message: string }) => {
+      console.log(`💬 Message in trip ${data.tripId} from ${role} ${userId}`);
+      
+      socket.to(`trip:${data.tripId}`).emit("trip:message:received", {
+        tripId: data.tripId,
+        senderId: userId,
+        senderRole: role,
+        message: data.message,
+        timestamp: new Date(),
+      });
+    });
+
+    // ============================================
+    // GENERIC EVENTS
+    // ============================================
+    socket.on("ping", () => {
+      socket.emit("pong", { timestamp: new Date() });
+    });
+
     socket.on("disconnect", () => {
-      console.log(`❌ User disconnected: ${user.id}`);
+      console.log(`❌ ${role.toUpperCase()} disconnected: ${userId}`);
     });
   });
 
   return io;
 };
 
-export const getIO = () => {
+const getIO = () => {
   if (!io) {
     throw new Error("Socket.io not initialized!");
   }
   return io;
 };
 
-export {
-    initializeSocket
-}
+export { initializeSocket, getIO };

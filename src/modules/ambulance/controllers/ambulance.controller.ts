@@ -16,6 +16,12 @@ import {
   getAllActiveAmbulanceIds
 } from "../services/ambulance.service.js";
 
+import {
+  broadcastAmbulanceLocation,
+  calculateAndEmitETA,
+  notifyAmbulanceStatusChange,
+} from "../../../shared/infra/sockets.infra.js";
+import { Trip } from "../../trip/model/trip.model.js";
 /**
  * @description Register a new ambulance
  * @route POST /api/v2/ambulances/register
@@ -194,6 +200,21 @@ const logoutAmbulance = asyncHandler(async (req: Request, res: Response) => {
     throw new ApiError(401, "Unauthorized");
   }
 
+  // Check if ambulance has an active trip
+  const activeTrip = await Trip.findOne({
+    ambulanceId: ambulanceId.toString(),
+    status: {
+      $in: ["ACCEPTED", "ARRIVED_PICKUP", "EN_ROUTE_HOSPITAL"],
+    },
+  });
+
+  if (activeTrip) {
+    throw new ApiError(
+      400,
+      "Cannot logout while on an active trip. Please complete or cancel the trip first."
+    );
+  }
+
   // Clear refresh token from database
   await Ambulance.findByIdAndUpdate(
     ambulanceId,
@@ -203,10 +224,11 @@ const logoutAmbulance = asyncHandler(async (req: Request, res: Response) => {
     { new: true }
   );
 
-  // ---------------------------------------------------------
-  // 2. REDIS SYNC: Explicitly remove them from the pool
-  // ---------------------------------------------------------
+  // Remove from Redis
   await removeAmbulanceFromRedis(ambulanceId.toString());
+
+  // Notify status change (going offline)
+  await notifyAmbulanceStatusChange(ambulanceId.toString(), "offline");
 
   // Clear cookies
   const cookieOptions = {
@@ -223,8 +245,8 @@ const logoutAmbulance = asyncHandler(async (req: Request, res: Response) => {
 });
 
 /**
- * @description Update ambulance status
- * @route PATCH /api/v2/ambulances/status
+ * @description Update ambulance status with real-time notifications
+ * @route PATCH /api/v2/ambulance/status
  * @access Private
  */
 const updateAmbulanceStatus = asyncHandler(
@@ -254,22 +276,29 @@ const updateAmbulanceStatus = asyncHandler(
       throw new ApiError(404, "Ambulance not found");
     }
 
-    // ---------------------------------------------------------
-    // 3. REDIS SYNC: Add or Remove based on the new status
-    // ---------------------------------------------------------
+    // Update Redis
     await syncAmbulancetoRedis(ambulance);
 
-    res
-      .status(200)
-      .json(
-        new ApiResponse(200, ambulance, "Ambulance status updated successfully")
-      );
+    // Notify via Socket.io
+    await notifyAmbulanceStatusChange(
+      ambulanceId.toString(),
+      status as "ready" | "on-trip" | "offline"
+    );
+
+    res.status(200).json(
+      new ApiResponse(
+        200,
+        ambulance,
+        "Ambulance status updated and broadcasted successfully"
+      )
+    );
   }
 );
 
+
 /**
- * @description Update ambulance location
- * @route PATCH /api/v2/ambulances/location
+ * @description Update ambulance location with real-time broadcasting
+ * @route PATCH /api/v2/ambulance/location
  * @access Private
  */
 const updateAmbulanceLocation = asyncHandler(
@@ -280,12 +309,9 @@ const updateAmbulanceLocation = asyncHandler(
       throw new ApiError(401, "Unauthorized");
     }
 
-    // Since we are using Zod middleware in the route (ambulance.routes.ts), 
-    // req.body is guaranteed to have the correct structure if we reach here.
-    // DTO: { location: { type: "Point", coordinates: [lng, lat] } }
     const { location } = req.body;
 
-    // Double-check validation (Optional but safe)
+    // Validate location format
     if (
       !location ||
       location.type !== "Point" ||
@@ -298,32 +324,33 @@ const updateAmbulanceLocation = asyncHandler(
       );
     }
 
-    // Update MongoDB
-    const ambulance = await Ambulance.findByIdAndUpdate(
-      ambulanceId,
-      { location },
-      { new: true, runValidators: true }
-    ).select("-password -refreshToken");
+    // Check if ambulance is on an active trip
+    const activeTrip = await Trip.findOne({
+      ambulanceId: ambulanceId.toString(),
+      status: {
+        $in: ["ACCEPTED", "ARRIVED_PICKUP", "EN_ROUTE_HOSPITAL"],
+      },
+    });
 
-    if (!ambulance) {
-      throw new ApiError(404, "Ambulance not found");
+    // Update location in MongoDB & Redis, and broadcast via Socket.io
+    const ambulance = await broadcastAmbulanceLocation(
+      ambulanceId.toString(),
+      location.coordinates,
+      activeTrip ? activeTrip._id.toString() : undefined
+    );
+
+    // Calculate and emit ETA if on an active trip
+    if (activeTrip && activeTrip.status === "ACCEPTED") {
+      await calculateAndEmitETA(activeTrip._id.toString());
     }
 
-    // ---------------------------------------------------------
-    // 4. REDIS SYNC: If they move, update Redis so dispatch finds them at the NEW spot
-    // ---------------------------------------------------------
-    // Note: If their status is "on-trip", this will ensure they stay removed from the "ready" pool
-    await syncAmbulancetoRedis(ambulance);
-
-    res
-      .status(200)
-      .json(
-        new ApiResponse(
-          200,
-          ambulance,
-          "Ambulance location updated successfully"
-        )
-      );
+    res.status(200).json(
+      new ApiResponse(
+        200,
+        ambulance,
+        "Location updated and broadcasted successfully"
+      )
+    );
   }
 );
 

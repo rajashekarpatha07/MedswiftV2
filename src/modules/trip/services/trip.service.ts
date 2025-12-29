@@ -6,8 +6,8 @@ import { ApiError } from "../../../shared/utils/ApiError.js";
 import { Ambulance } from "../../ambulance/model/ambulance.model.js";
 import { findNearbyAmbulances } from "../../ambulance/services/ambulance.service.js";
 import { findNearbyHospitals } from "../../hospital/services/hospital.service.js";
-import type { Types } from "mongoose";
 import mongoose from "mongoose";
+import { getIO } from "../../../config/socket.js";
 
 interface CreateTripInput {
   userId: string;
@@ -161,9 +161,44 @@ const createTripRequest = async (
 
   await trip.save();
 
+  try {
+    const io = getIO();
+    const ambulanceIds = nearbyAmbulances.map((a) => a.ambulanceId);
+
+    // Emit to each nearby ambulance
+    ambulanceIds.forEach((ambulanceId) => {
+      io.to(ambulanceId).emit("trip:new_request", {
+        tripId: trip._id.toString(),
+        userId: user._id.toString(),
+        userName: user.name,
+        userPhone: user.phone,
+        bloodGroup: user.bloodGroup,
+        pickupLocation: {
+          address: pickupAddress,
+          coordinates: pickupCoordinates,
+        },
+        ...(hospital && {
+          hospital: {
+            name: hospital.name,
+            address: hospital.address,
+          },
+        }),
+        distance: nearbyAmbulances.find((a) => a.ambulanceId === ambulanceId)
+          ?.distance,
+        timestamp: new Date(),
+      });
+    });
+
+    console.log(
+      `🚨 Trip ${trip._id} broadcasted to ${ambulanceIds.length} ambulances`
+    );
+  } catch (error) {
+    console.error("Socket.io notification failed:", error);
+    // Don't throw - trip creation succeeded, socket notification is secondary
+  }
+
   return trip;
 };
-
 
 /**
  * Validate status transition logic
@@ -197,11 +232,7 @@ const updateTripStatus = async (
 ): Promise<ITrip> => {
   const { tripId, status, ambulanceId, location, updatedBy } = input;
 
-  const trip = await Trip.findByIdAndUpdate(
-    tripId,
-    {},
-    { new: true }
-  );
+  const trip = await Trip.findByIdAndUpdate(tripId, {}, { new: true });
   if (!trip) {
     throw new ApiError(404, "Trip not found");
   }
@@ -249,6 +280,7 @@ const updateTripStatus = async (
 
 /**
  * Assign ambulance to trip
+ * ENHANCED: Creates trip room and notifies user
  */
 const assignAmbulanceToTrip = async (
   tripId: string,
@@ -275,18 +307,47 @@ const assignAmbulanceToTrip = async (
     throw new ApiError(400, "Ambulance is not available");
   }
 
+  // Update ambulance status to on-trip
+  ambulance.status = "on-trip";
+  await ambulance.save();
+
   // Update trip
-  return await updateTripStatus({
+  const updatedTrip = await updateTripStatus({
     tripId,
     status: "ACCEPTED",
     ambulanceId,
     location: ambulance.location.coordinates,
     updatedBy: `ambulance:${ambulanceId}`,
   });
+
+  // 🔥 SOCKET.IO: Notify user that ambulance accepted
+  try {
+    const io = getIO();
+    io.to(trip.userId.toString()).emit("trip:accepted", {
+      tripId,
+      ambulanceId,
+      ambulance: {
+        driverName: ambulance.driverName,
+        vehicleNumber: ambulance.vehicleNumber,
+        driverPhone: ambulance.driverPhone,
+        location: ambulance.location.coordinates,
+      },
+      message: `${ambulance.driverName} is on the way!`,
+      timestamp: new Date(),
+    });
+    console.log(
+      `✅ User ${trip.userId} notified: Ambulance ${ambulanceId} accepted`
+    );
+  } catch (error) {
+    console.error("Socket.io acceptance notification failed:", error);
+  }
+
+  return updatedTrip;
 };
 
 /**
  * Cancel trip
+ * ENHANCED: Notifies all participants
  */
 const cancelTrip = async (
   tripId: string,
@@ -310,9 +371,22 @@ const cancelTrip = async (
 
   await trip.save();
 
-  // If ambulance was assigned, free it up
+  // Free up ambulance if assigned
   if (trip.ambulanceId) {
     await Ambulance.findByIdAndUpdate(trip.ambulanceId, { status: "ready" });
+  }
+
+  // 🔥 SOCKET.IO: Notify all participants
+  try {
+    const io = getIO();
+    io.to(`trip:${tripId}`).emit("trip:cancelled", {
+      tripId,
+      cancelledBy,
+      timestamp: new Date(),
+    });
+    console.log(`❌ Trip ${tripId} cancellation broadcasted`);
+  } catch (error) {
+    console.error("Socket.io cancellation notification failed:", error);
   }
 
   return trip;
@@ -351,7 +425,6 @@ const getUserTripHistory = async (
   return trips;
 };
 
-
 /**
  * Get active trip for user
  */
@@ -375,7 +448,6 @@ const getActiveTrip = async (userId: string): Promise<ITrip | null> => {
   return trip;
 };
 
-
 export {
   createTripRequest,
   updateTripStatus,
@@ -383,5 +455,5 @@ export {
   cancelTrip,
   getTripDetails,
   getUserTripHistory,
-  getActiveTrip
+  getActiveTrip,
 };
