@@ -4,6 +4,7 @@ import {
   loginAdmin,
   logoutAdmin,
   getAdminProfile,
+  debugRedisKeys,
 } from "../controllers/admin.controller.js";
 import { verifyAdminJWT } from "../../../shared/middlewares/auth.middleware.js";
 
@@ -16,5 +17,6 @@ router.post("/login", loginAdmin);
 // Protected Routes (Require Admin Token)
 router.post("/logout", verifyAdminJWT, logoutAdmin);
 router.get("/me", verifyAdminJWT, getAdminProfile);
+router.get("/debug/redis", verifyAdminJWT, debugRedisKeys)
 
 export const adminRoutes: ReturnType<typeof Router> = router;

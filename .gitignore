@@ -3,3 +3,5 @@ node_modules
 dist
 admin.md
 codebase_output.txt
+code.js
+frontend

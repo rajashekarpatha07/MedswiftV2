@@ -1,4 +1,5 @@
 import mongoose, { Document, Schema } from "mongoose";
+import { string } from "zod";
 
 export type TripStatus =
   | "SEARCHING" // Looking for driver

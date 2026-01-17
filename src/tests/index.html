@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MedSwift - Dual Client Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+</head>
+<body class="bg-gray-900 text-white min-h-screen p-4">
+    <div class="max-w-[1800px] mx-auto">
+        <!-- Header -->
+        <div class="text-center mb-6">
+            <h1 class="text-4xl font-bold text-blue-400 mb-2">🚑 MedSwift - Real-Time Tracking Test</h1>
+            <p class="text-gray-400">Simulate User requesting ambulance + Ambulance responding</p>
+        </div>
+
+        <!-- Two Column Layout -->
+        <div class="grid grid-cols-2 gap-4">
+            
+            <!-- ========== USER PANEL ========== -->
+            <div class="space-y-4">
+                <div class="bg-gradient-to-r from-blue-900 to-blue-800 p-4 rounded-lg">
+                    <h2 class="text-2xl font-bold text-center">👤 USER (Patient)</h2>
+                </div>
+
+                <!-- User Connection -->
+                <div class="bg-gray-800 rounded-lg p-4">
+                    <h3 class="text-lg font-semibold mb-3 text-blue-400">Connection</h3>
+                    <input type="text" id="userToken" placeholder="Paste User JWT Token" 
+                           class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 mb-2 text-sm font-mono">
+                    <div class="flex gap-2">
+                        <button onclick="connectUser()" class="flex-1 bg-green-600 hover:bg-green-700 px-4 py-2 rounded transition">
+                            🔌 Connect
+                        </button>
+                        <button onclick="disconnectUser()" class="flex-1 bg-red-600 hover:bg-red-700 px-4 py-2 rounded transition">
+                            ❌ Disconnect
+                        </button>
+                    </div>
+                    <div id="userStatus" class="mt-2 p-3 rounded bg-gray-700 border-l-4 border-gray-500 text-sm">
+                        <span class="font-semibold">Status:</span> <span id="userStatusText">Not Connected</span>
+                    </div>
+                </div>
+
+                <!-- User Trip Control -->
+                <div class="bg-gray-800 rounded-lg p-4">
+                    <h3 class="text-lg font-semibold mb-3 text-blue-400">Trip Control</h3>
+                    <input type="text" id="userTripId" placeholder="Trip ID (same for both)" 
+                           class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 mb-2 text-sm font-mono">
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="userJoinTrip()" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded transition text-sm">
+                            📍 Join Trip
+                        </button>
+                        <button onclick="userLeaveTrip()" class="bg-yellow-600 hover:bg-yellow-700 px-4 py-2 rounded transition text-sm">
+                            🚪 Leave Trip
+                        </button>
+                    </div>
+                </div>
+
+                <!-- User Location -->
+                <div class="bg-gray-800 rounded-lg p-4">
+                    <h3 class="text-lg font-semibold mb-3 text-blue-400">My Location (Patient)</h3>
+                    <div class="grid grid-cols-2 gap-2 mb-2">
+                        <div>
+                            <label class="text-xs text-gray-400">Latitude</label>
+                            <input type="number" id="userLat" value="13.0827" step="0.0001" 
+                                   class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-sm">
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-400">Longitude</label>
+                            <input type="number" id="userLng" value="80.2707" step="0.0001" 
+                                   class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-sm">
+                        </div>
+                    </div>
+                    <button onclick="userSendLocation()" class="w-full bg-green-600 hover:bg-green-700 px-4 py-2 rounded transition text-sm mb-2">
+                        📡 Send My Location
+                    </button>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="userStartAuto()" class="bg-teal-600 hover:bg-teal-700 px-4 py-2 rounded transition text-xs">
+                            ▶️ Auto (3s)
+                        </button>
+                        <button onclick="userStopAuto()" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded transition text-xs">
+                            ⏹️ Stop
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Ambulance Tracker -->
+                <div class="bg-gray-800 rounded-lg p-4">
+                    <h3 class="text-lg font-semibold mb-3 text-orange-400">🚑 Track Ambulance</h3>
+                    <div id="userAmbulanceTracker" class="bg-gray-900 rounded p-3 text-sm space-y-2">
+                        <div class="text-gray-500">Waiting for ambulance location...</div>
+                    </div>
+                    <button onclick="userGetAmbulanceLocation()" class="w-full mt-2 bg-indigo-600 hover:bg-indigo-700 px-4 py-2 rounded transition text-sm">
+                        🔍 Get Ambulance Location
+                    </button>
+                </div>
+
+                <!-- User Actions -->
+                <div class="bg-gray-800 rounded-lg p-4">
+                    <h3 class="text-lg font-semibold mb-3 text-red-400">Emergency</h3>
+                    <button onclick="userSendSOS()" class="w-full bg-red-600 hover:bg-red-700 px-4 py-2 rounded transition font-bold">
+                        🚨 SEND SOS
+                    </button>
+                </div>
+
+                <!-- User Logs -->
+                <div class="bg-gray-800 rounded-lg p-4">
+                    <div class="flex justify-between items-center mb-2">
+                        <h3 class="text-lg font-semibold text-cyan-400">User Events</h3>
+                        <button onclick="clearUserLogs()" class="bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded text-xs">Clear</button>
+                    </div>
+                    <div id="userLogs" class="bg-gray-900 rounded p-3 h-64 overflow-y-auto font-mono text-xs space-y-1">
+                        <div class="text-gray-500">Waiting for events...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ========== AMBULANCE PANEL ========== -->
+            <div class="space-y-4">
+                <div class="bg-gradient-to-r from-red-900 to-red-800 p-4 rounded-lg">
+                    <h2 class="text-2xl font-bold text-center">🚑 AMBULANCE (Driver)</h2>
+                </div>
+
+                <!-- Ambulance Connection -->
+                <div class="bg-gray-800 rounded-lg p-4">
+                    <h3 class="text-lg font-semibold mb-3 text-red-400">Connection</h3>
+                    <input type="text" id="ambulanceToken" placeholder="Paste Ambulance JWT Token" 
+                           class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 mb-2 text-sm font-mono">
+                    <div class="flex gap-2">
+                        <button onclick="connectAmbulance()" class="flex-1 bg-green-600 hover:bg-green-700 px-4 py-2 rounded transition">
+                            🔌 Connect
+                        </button>
+                        <button onclick="disconnectAmbulance()" class="flex-1 bg-red-600 hover:bg-red-700 px-4 py-2 rounded transition">
+                            ❌ Disconnect
+                        </button>
+                    </div>
+                    <div id="ambulanceStatus" class="mt-2 p-3 rounded bg-gray-700 border-l-4 border-gray-500 text-sm">
+                        <span class="font-semibold">Status:</span> <span id="ambulanceStatusText">Not Connected</span>
+                    </div>
+                </div>
+
+                <!-- Ambulance Trip Control -->
+                <div class="bg-gray-800 rounded-lg p-4">
+                    <h3 class="text-lg font-semibold mb-3 text-red-400">Trip Control</h3>
+                    <input type="text" id="ambulanceTripId" placeholder="Trip ID (same as user)" 
+                           class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 mb-2 text-sm font-mono">
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="ambulanceJoinTrip()" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded transition text-sm">
+                            📍 Join Trip
+                        </button>
+                        <button onclick="ambulanceLeaveTrip()" class="bg-yellow-600 hover:bg-yellow-700 px-4 py-2 rounded transition text-sm">
+                            🚪 Leave Trip
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Ambulance Location -->
+                <div class="bg-gray-800 rounded-lg p-4">
+                    <h3 class="text-lg font-semibold mb-3 text-red-400">My Location (Driver)</h3>
+                    <div class="grid grid-cols-2 gap-2 mb-2">
+                        <div>
+                            <label class="text-xs text-gray-400">Latitude</label>
+                            <input type="number" id="ambulanceLat" value="13.0900" step="0.0001" 
+                                   class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-sm">
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-400">Longitude</label>
+                            <input type="number" id="ambulanceLng" value="80.2800" step="0.0001" 
+                                   class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-sm">
+                        </div>
+                    </div>
+                    <button onclick="ambulanceSendLocation()" class="w-full bg-green-600 hover:bg-green-700 px-4 py-2 rounded transition text-sm mb-2">
+                        📡 Send My Location
+                    </button>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="ambulanceStartAuto()" class="bg-teal-600 hover:bg-teal-700 px-4 py-2 rounded transition text-xs">
+                            ▶️ Auto (3s)
+                        </button>
+                        <button onclick="ambulanceStopAuto()" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded transition text-xs">
+                            ⏹️ Stop
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Patient Tracker -->
+                <div class="bg-gray-800 rounded-lg p-4">
+                    <h3 class="text-lg font-semibold mb-3 text-blue-400">👤 Track Patient</h3>
+                    <div id="ambulancePatientTracker" class="bg-gray-900 rounded p-3 text-sm space-y-2">
+                        <div class="text-gray-500">Waiting for patient location...</div>
+                    </div>
+                    <button onclick="ambulanceGetUserLocation()" class="w-full mt-2 bg-indigo-600 hover:bg-indigo-700 px-4 py-2 rounded transition text-sm">
+                        🔍 Get Patient Location
+                    </button>
+                </div>
+
+                <!-- Ambulance Actions -->
+                <div class="bg-gray-800 rounded-lg p-4">
+                    <h3 class="text-lg font-semibold mb-3 text-red-400">Emergency</h3>
+                    <button onclick="ambulanceSendSOS()" class="w-full bg-red-600 hover:bg-red-700 px-4 py-2 rounded transition font-bold">
+                        🚨 SEND SOS
+                    </button>
+                </div>
+
+                <!-- Ambulance Logs -->
+                <div class="bg-gray-800 rounded-lg p-4">
+                    <div class="flex justify-between items-center mb-2">
+                        <h3 class="text-lg font-semibold text-cyan-400">Ambulance Events</h3>
+                        <button onclick="clearAmbulanceLogs()" class="bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded text-xs">Clear</button>
+                    </div>
+                    <div id="ambulanceLogs" class="bg-gray-900 rounded p-3 h-64 overflow-y-auto font-mono text-xs space-y-1">
+                        <div class="text-gray-500">Waiting for events...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Instructions -->
+        <div class="mt-6 bg-gray-800 rounded-lg p-4">
+            <h3 class="text-lg font-semibold mb-3 text-yellow-400">📋 Testing Instructions</h3>
+            <ol class="list-decimal list-inside space-y-2 text-sm">
+                <li>Login to your backend and get JWT tokens for <strong>1 User</strong> and <strong>1 Ambulance</strong></li>
+                <li>Paste User token on the LEFT, Ambulance token on the RIGHT</li>
+                <li>Click <strong>"Connect"</strong> on both sides - should see green status</li>
+                <li>Create a trip via API: <code class="bg-gray-700 px-2 py-1 rounded">POST /api/v2/trip/request</code></li>
+                <li>Copy the <strong>Trip ID</strong> and paste it in BOTH trip ID fields</li>
+                <li>Click <strong>"Join Trip"</strong> on BOTH sides</li>
+                <li>Click <strong>"Send My Location"</strong> on User side → Should appear in Ambulance's "Track Patient" section</li>
+                <li>Click <strong>"Send My Location"</strong> on Ambulance side → Should appear in User's "Track Ambulance" section</li>
+                <li>Try <strong>"Auto (3s)"</strong> on both sides → Watch real-time location exchange!</li>
+                <li>Test <strong>SOS</strong> → Should appear in both event logs</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        const SERVER_URL = "http://localhost:5000"; // Change if needed
+        let userSocket = null;
+        let ambulanceSocket = null;
+        let userAutoInterval = null;
+        let ambulanceAutoInterval = null;
+
+        // ==================== UTILITY FUNCTIONS ====================
+        function log(logsId, message, type = 'info') {
+            const logsDiv = document.getElementById(logsId);
+            const timestamp = new Date().toLocaleTimeString();
+            const colors = {
+                info: 'text-blue-400',
+                success: 'text-green-400',
+                error: 'text-red-400',
+                warning: 'text-yellow-400',
+                event: 'text-purple-400'
+            };
+            
+            const logEntry = document.createElement('div');
+            logEntry.className = colors[type];
+            logEntry.innerHTML = `<span class="text-gray-500">[${timestamp}]</span> ${message}`;
+            logsDiv.appendChild(logEntry);
+            logsDiv.scrollTop = logsDiv.scrollHeight;
+        }
+
+        function updateStatus(statusId, textId, status, connected) {
+            const statusDiv = document.getElementById(statusId);
+            const statusText = document.getElementById(textId);
+            statusText.textContent = status;
+            statusDiv.className = connected 
+                ? 'mt-2 p-3 rounded bg-gray-700 border-l-4 border-green-500 text-sm'
+                : 'mt-2 p-3 rounded bg-gray-700 border-l-4 border-red-500 text-sm';
+        }
+
+        // ==================== USER FUNCTIONS ====================
+        function connectUser() {
+            const token = document.getElementById('userToken').value.trim();
+            if (!token) {
+                alert('Please paste User JWT token');
+                return;
+            }
+
+            log('userLogs', '🔌 Connecting as User...', 'info');
+            userSocket = io(SERVER_URL, {
+                auth: { token },
+                transports: ['websocket', 'polling'],
+                reconnection: true
+            });
+
+            userSocket.on('connect', () => {
+                log('userLogs', `✅ Connected! Socket: ${userSocket.id}`, 'success');
+                updateStatus('userStatus', 'userStatusText', `Connected (${userSocket.id})`, true);
+            });
+
+            userSocket.on('connected', (data) => {
+                log('userLogs', `👋 Welcome: ${data.userRole}`, 'event');
+            });
+
+            userSocket.on('participant_joined', (data) => {
+                log('userLogs', `👤 ${data.userRole} joined trip`, 'event');
+            });
+
+            userSocket.on('location_updated', (data) => {
+                if (data.userRole === 'ambulance') {
+                    log('userLogs', `🚑 Ambulance: [${data.location.latitude.toFixed(4)}, ${data.location.longitude.toFixed(4)}]`, 'success');
+                    updateAmbulanceTracker(data.location);
+                }
+            });
+
+            userSocket.on('emergency_sos', (data) => {
+                log('userLogs', `🚨 SOS from ${data.userRole}!`, 'error');
+            });
+
+            userSocket.on('disconnect', () => {
+                log('userLogs', '❌ Disconnected', 'error');
+                updateStatus('userStatus', 'userStatusText', 'Disconnected', false);
+            });
+        }
+
+        function disconnectUser() {
+            if (userSocket) {
+                userSocket.disconnect();
+                userSocket = null;
+            }
+        }
+
+        function userJoinTrip() {
+            const tripId = document.getElementById('userTripId').value.trim();
+            if (!userSocket || !tripId) return;
+
+            userSocket.emit('join_trip', { tripId }, (res) => {
+                if (res.success) {
+                    log('userLogs', `📍 Joined trip: ${tripId}`, 'success');
+                } else {
+                    log('userLogs', `❌ ${res.message}`, 'error');
+                }
+            });
+        }
+
+        function userLeaveTrip() {
+            const tripId = document.getElementById('userTripId').value.trim();
+            if (!userSocket || !tripId) return;
+
+            userSocket.emit('leave_trip', { tripId }, (res) => {
+                log('userLogs', res.success ? '🚪 Left trip' : `❌ ${res.message}`, res.success ? 'info' : 'error');
+            });
+        }
+
+        function userSendLocation() {
+            const tripId = document.getElementById('userTripId').value.trim();
+            const latitude = parseFloat(document.getElementById('userLat').value);
+            const longitude = parseFloat(document.getElementById('userLng').value);
+
+            if (!userSocket || !tripId) return;
+
+            userSocket.emit('location_update', { tripId, location: { latitude, longitude } }, (res) => {
+                if (res.success) {
+                    log('userLogs', `📡 Sent location: [${latitude.toFixed(4)}, ${longitude.toFixed(4)}]`, 'success');
+                } else {
+                    log('userLogs', `❌ ${res.message}`, 'error');
+                }
+            });
+        }
+
+        function userStartAuto() {
+            if (userAutoInterval) return;
+            userAutoInterval = setInterval(() => {
+                const lat = parseFloat(document.getElementById('userLat').value);
+                const lng = parseFloat(document.getElementById('userLng').value);
+                document.getElementById('userLat').value = (lat + Math.random() * 0.001).toFixed(4);
+                document.getElementById('userLng').value = (lng + Math.random() * 0.001).toFixed(4);
+                userSendLocation();
+            }, 3000);
+            log('userLogs', '▶️ Auto-send started', 'info');
+        }
+
+        function userStopAuto() {
+            if (userAutoInterval) {
+                clearInterval(userAutoInterval);
+                userAutoInterval = null;
+                log('userLogs', '⏹️ Auto-send stopped', 'info');
+            }
+        }
+
+        function userGetAmbulanceLocation() {
+            const tripId = document.getElementById('userTripId').value.trim();
+            if (!userSocket || !tripId) return;
+
+            userSocket.emit('get_location', { tripId, targetRole: 'ambulance' }, (res) => {
+                if (res.success) {
+                    log('userLogs', `📍 Got ambulance: [${res.location.latitude}, ${res.location.longitude}]`, 'success');
+                    updateAmbulanceTracker(res.location);
+                } else {
+                    log('userLogs', `❌ ${res.message}`, 'error');
+                }
+            });
+        }
+
+        function userSendSOS() {
+            const tripId = document.getElementById('userTripId').value.trim();
+            if (!userSocket || !tripId) return;
+
+            userSocket.emit('emergency_sos', { tripId, message: 'HELP! Patient emergency!' }, (res) => {
+                log('userLogs', res.success ? '🚨 SOS SENT!' : `❌ ${res.message}`, 'error');
+            });
+        }
+
+        function updateAmbulanceTracker(location) {
+            const tracker = document.getElementById('userAmbulanceTracker');
+            tracker.innerHTML = `
+                <div class="text-green-400">🚑 Ambulance Location:</div>
+                <div>Latitude: ${location.latitude}</div>
+                <div>Longitude: ${location.longitude}</div>
+                <div class="text-xs text-gray-500">Updated: ${new Date().toLocaleTimeString()}</div>
+            `;
+        }
+
+        function clearUserLogs() {
+            document.getElementById('userLogs').innerHTML = '<div class="text-gray-500">Logs cleared...</div>';
+        }
+
+        // ==================== AMBULANCE FUNCTIONS ====================
+        function connectAmbulance() {
+            const token = document.getElementById('ambulanceToken').value.trim();
+            if (!token) {
+                alert('Please paste Ambulance JWT token');
+                return;
+            }
+
+            log('ambulanceLogs', '🔌 Connecting as Ambulance...', 'info');
+            ambulanceSocket = io(SERVER_URL, {
+                auth: { token },
+                transports: ['websocket', 'polling'],
+                reconnection: true
+            });
+
+            ambulanceSocket.on('connect', () => {
+                log('ambulanceLogs', `✅ Connected! Socket: ${ambulanceSocket.id}`, 'success');
+                updateStatus('ambulanceStatus', 'ambulanceStatusText', `Connected (${ambulanceSocket.id})`, true);
+            });
+
+            ambulanceSocket.on('connected', (data) => {
+                log('ambulanceLogs', `👋 Welcome: ${data.userRole}`, 'event');
+            });
+
+            ambulanceSocket.on('participant_joined', (data) => {
+                log('ambulanceLogs', `👤 ${data.userRole} joined trip`, 'event');
+            });
+
+            ambulanceSocket.on('location_updated', (data) => {
+                if (data.userRole === 'user') {
+                    log('ambulanceLogs', `👤 Patient: [${data.location.latitude.toFixed(4)}, ${data.location.longitude.toFixed(4)}]`, 'success');
+                    updatePatientTracker(data.location);
+                }
+            });
+
+            ambulanceSocket.on('emergency_sos', (data) => {
+                log('ambulanceLogs', `🚨 SOS from ${data.userRole}!`, 'error');
+            });
+
+            ambulanceSocket.on('disconnect', () => {
+                log('ambulanceLogs', '❌ Disconnected', 'error');
+                updateStatus('ambulanceStatus', 'ambulanceStatusText', 'Disconnected', false);
+            });
+        }
+
+        function disconnectAmbulance() {
+            if (ambulanceSocket) {
+                ambulanceSocket.disconnect();
+                ambulanceSocket = null;
+            }
+        }
+
+        function ambulanceJoinTrip() {
+            const tripId = document.getElementById('ambulanceTripId').value.trim();
+            if (!ambulanceSocket || !tripId) return;
+
+            ambulanceSocket.emit('join_trip', { tripId }, (res) => {
+                if (res.success) {
+                    log('ambulanceLogs', `📍 Joined trip: ${tripId}`, 'success');
+                } else {
+                    log('ambulanceLogs', `❌ ${res.message}`, 'error');
+                }
+            });
+        }
+
+        function ambulanceLeaveTrip() {
+            const tripId = document.getElementById('ambulanceTripId').value.trim();
+            if (!ambulanceSocket || !tripId) return;
+
+            ambulanceSocket.emit('leave_trip', { tripId }, (res) => {
+                log('ambulanceLogs', res.success ? '🚪 Left trip' : `❌ ${res.message}`, res.success ? 'info' : 'error');
+            });
+        }
+
+        function ambulanceSendLocation() {
+            const tripId = document.getElementById('ambulanceTripId').value.trim();
+            const latitude = parseFloat(document.getElementById('ambulanceLat').value);
+            const longitude = parseFloat(document.getElementById('ambulanceLng').value);
+
+            if (!ambulanceSocket || !tripId) return;
+
+            ambulanceSocket.emit('location_update', { tripId, location: { latitude, longitude } }, (res) => {
+                if (res.success) {
+                    log('ambulanceLogs', `📡 Sent location: [${latitude.toFixed(4)}, ${longitude.toFixed(4)}]`, 'success');
+                } else {
+                    log('ambulanceLogs', `❌ ${res.message}`, 'error');
+                }
+            });
+        }
+
+        function ambulanceStartAuto() {
+            if (ambulanceAutoInterval) return;
+            ambulanceAutoInterval = setInterval(() => {
+                const lat = parseFloat(document.getElementById('ambulanceLat').value);
+                const lng = parseFloat(document.getElementById('ambulanceLng').value);
+                document.getElementById('ambulanceLat').value = (lat + Math.random() * 0.001).toFixed(4);
+                document.getElementById('ambulanceLng').value = (lng + Math.random() * 0.001).toFixed(4);
+                ambulanceSendLocation();
+            }, 3000);
+            log('ambulanceLogs', '▶️ Auto-send started', 'info');
+        }
+
+        function ambulanceStopAuto() {
+            if (ambulanceAutoInterval) {
+                clearInterval(ambulanceAutoInterval);
+                ambulanceAutoInterval = null;
+                log('ambulanceLogs', '⏹️ Auto-send stopped', 'info');
+            }
+        }
+
+        function ambulanceGetUserLocation() {
+            const tripId = document.getElementById('ambulanceTripId').value.trim();
+            if (!ambulanceSocket || !tripId) return;
+
+            ambulanceSocket.emit('get_location', { tripId, targetRole: 'user' }, (res) => {
+                if (res.success) {
+                    log('ambulanceLogs', `📍 Got patient: [${res.location.latitude}, ${res.location.longitude}]`, 'success');
+                    updatePatientTracker(res.location);
+                } else {
+                    log('ambulanceLogs', `❌ ${res.message}`, 'error');
+                }
+            });
+        }
+
+        function ambulanceSendSOS() {
+            const tripId = document.getElementById('ambulanceTripId').value.trim();
+            if (!ambulanceSocket || !tripId) return;
+
+            ambulanceSocket.emit('emergency_sos', { tripId, message: 'HELP! Ambulance needs assistance!' }, (res) => {
+                log('ambulanceLogs', res.success ? '🚨 SOS SENT!' : `❌ ${res.message}`, 'error');
+            });
+        }
+
+        function updatePatientTracker(location) {
+            const tracker = document.getElementById('ambulancePatientTracker');
+            tracker.innerHTML = `
+                <div class="text-blue-400">👤 Patient Location:</div>
+                <div>Latitude: ${location.latitude}</div>
+                <div>Longitude: ${location.longitude}</div>
+                <div class="text-xs text-gray-500">Updated: ${new Date().toLocaleTimeString()}</div>
+            `;
+        }
+
+        function clearAmbulanceLogs() {
+            document.getElementById('ambulanceLogs').innerHTML = '<div class="text-gray-500">Logs cleared...</div>';
+        }
+
+        // Auto-sync trip IDs
+        document.getElementById('userTripId').addEventListener('input', (e) => {
+            document.getElementById('ambulanceTripId').value = e.target.value;
+        });
+        document.getElementById('ambulanceTripId').addEventListener('input', (e) => {
+            document.getElementById('userTripId').value = e.target.value;
+        });

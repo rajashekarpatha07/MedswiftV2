@@ -3,26 +3,28 @@ import dotenv from "dotenv";
 import { ConnectDb } from "./config/Dbconnecton.js";
 import { PORT } from "./config/env.js";
 import redis from "./config/redis.js";
-import { createServer } from "http";
-import { initializeSocket } from "./config/socket.js";
+import { initializeSocket } from './shared/infra/sockets/socket.config.js';
+import { createServer } from "node:http";
 
-dotenv.config({
-  path: "./.env",
-});
+
 const StartServer = async () => {
   try {
+    // Connect to MongoDB
     await ConnectDb();
 
-    // 2. Create the HTTP server explicitly
+    // Connect to Redis
+    await redis.connect();
+
+    // Create HTTP server (needed for Socket.IO)
     const httpServer = createServer(app);
 
-    // 3. Initialize Socket.io
+    // Initialize Socket.IO
     initializeSocket(httpServer);
 
-    // 4. Listen using the httpServer, NOT 'app'
+    // Start listening
     httpServer.listen(PORT, () => {
-      console.log(`Server is running on http://localhost:${PORT}`);
-      console.log(`Socket.io is ready`);
+      console.log(`🚀 Server is running on http://localhost:${PORT}`);
+      console.log(`📡 Socket.IO ready for connections`);
     });
   } catch (error) {
     console.log("Error in connection to Database: ", error);
@@ -30,5 +32,4 @@ const StartServer = async () => {
   }
 };
 
-StartServer();
-redis.connect();
+StartServer()
