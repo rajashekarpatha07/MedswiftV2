@@ -4,7 +4,7 @@ import { Server as SocketServer } from "socket.io";
 import type { Server as HTTPServer } from "http";
 import { socketAuthMiddleware } from "./socket.middleware/socket.middleware.js";
 import { connectionHandler } from "./handlers/connection.handler.js";
-
+import { BASE_URL } from "../../../config/env.js";
 let io: SocketServer | null = null;
 
 /**
@@ -13,7 +13,7 @@ let io: SocketServer | null = null;
 export const initializeSocket = (httpServer: HTTPServer): SocketServer => {
   io = new SocketServer(httpServer, {
     cors: {
-      origin: "http://localhost:5000", // Match your Express CORS
+      origin: BASE_URL, // Match your Express CORS
       credentials: true,
       methods: ["GET", "POST"]
     },

@@ -4,6 +4,7 @@ import express, {
   type Response,
   type Application,
 } from "express";
+import { BASE_URL } from "./config/env.js";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import { ApiError } from "./shared/utils/ApiError.js";
@@ -28,7 +29,7 @@ const app: Application = express();
 
 app.use(
   cors({
-    origin: "http://localhost:5000",
+    origin: BASE_URL,
     credentials: true,
   })
 );
