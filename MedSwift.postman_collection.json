@@ -1,0 +1,2804 @@
+{
+	"info": {
+		"_postman_id": "db9cbea1-aa46-4357-9510-c12c72781156",
+		"name": "MedSwift",
+		"description": "### Welcome to Postman! This is your first collection. \n\nCollections are your starting point for building and testing APIs. You can use this one to:\n\n• Group related requests\n• Test your API in real-world scenarios\n• Document and share your requests\n\nUpdate the name and overview whenever you’re ready to make it yours.\n\n[Learn more about Postman Collections.](https://learning.postman.com/docs/collections/collections-overview/)",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "50567195",
+		"_collection_link": "https://rajashekarpatha07-4295583.postman.co/workspace/Raja-Shekar-Patha's-Workspace~03dd58fc-809b-4aac-89ec-0f7312161e8b/collection/50567195-db9cbea1-aa46-4357-9510-c12c72781156?action=share&source=collection_link&creator=50567195"
+	},
+	"item": [
+		{
+			"name": "User",
+			"item": [
+				{
+					"name": "Auth",
+					"item": [
+						{
+							"name": "User-Register",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"name\": \"Raja Shekar\",\n  \"email\": \"raja2@test.com\",\n  \"phone\": \"9876543211\",\n  \"password\": \"password123\",\n  \"bloodGroup\": \"A+\",\n  \"location\": {\n    \"type\": \"Point\",\n    \"coordinates\": [78.4867, 17.3850]\n  }\n}\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseURL}}/api/v2/user/register",
+									"host": [
+										"{{baseURL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"user",
+										"register"
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "User-Register",
+									"originalRequest": {
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"name\": \"Sai Krishna\",\n  \"email\": \"sai@test.com\",\n  \"phone\": \"9876543210\",\n  \"password\": \"password123\",\n  \"bloodGroup\": \"A+\",\n  \"location\": {\n    \"type\": \"Point\",\n    \"coordinates\": [78.4867, 17.3850]\n  }\n}\n",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{baseURL}}/api/v2/user/register",
+											"host": [
+												"{{baseURL}}"
+											],
+											"path": [
+												"api",
+												"v2",
+												"user",
+												"register"
+											]
+										}
+									},
+									"status": "Created",
+									"code": 201,
+									"_postman_previewlanguage": null,
+									"header": [
+										{
+											"key": "X-Powered-By",
+											"value": "Express"
+										},
+										{
+											"key": "Access-Control-Allow-Origin",
+											"value": "http://localhost:5000"
+										},
+										{
+											"key": "Vary",
+											"value": "Origin"
+										},
+										{
+											"key": "Access-Control-Allow-Credentials",
+											"value": "true"
+										},
+										{
+											"key": "Set-Cookie",
+											"value": "accessToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzBjMzM5OTlmYmVmMjgwNjk4YWM0NyIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzY4OTk3NjkwLCJleHAiOjE3Njg5OTg1OTB9.pREPTp8WaWz7gVPotJTHMO81_dl9Q1sQ1dQhjoiQy0w; Max-Age=900; Path=/; Expires=Wed, 21 Jan 2026 12:29:50 GMT; HttpOnly; SameSite=Strict"
+										},
+										{
+											"key": "Set-Cookie",
+											"value": "refreshToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzBjMzM5OTlmYmVmMjgwNjk4YWM0NyIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzY4OTk3NjkwLCJleHAiOjE3Njk2MDI0OTB9.o5SqCBTDwt3zVizV-7HKDNo3fyuvDXcaNuu5hBpcUZA; Max-Age=604800; Path=/; Expires=Wed, 28 Jan 2026 12:14:50 GMT; HttpOnly; SameSite=Strict"
+										},
+										{
+											"key": "Content-Type",
+											"value": "application/json; charset=utf-8"
+										},
+										{
+											"key": "Content-Length",
+											"value": "787"
+										},
+										{
+											"key": "ETag",
+											"value": "W/\"313-dTta/g/u3xU2Ys5fWEA/RAeMKGM\""
+										},
+										{
+											"key": "Date",
+											"value": "Wed, 21 Jan 2026 12:14:50 GMT"
+										},
+										{
+											"key": "Connection",
+											"value": "keep-alive"
+										},
+										{
+											"key": "Keep-Alive",
+											"value": "timeout=5"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"statusCode\": 201,\n    \"message\": \"User registered successfully\",\n    \"data\": {\n        \"user\": {\n            \"location\": {\n                \"type\": \"Point\",\n                \"coordinates\": [\n                    78.4867,\n                    17.385\n                ]\n            },\n            \"_id\": \"6970c33999fbef280698ac47\",\n            \"name\": \"sai krishna\",\n            \"email\": \"sai@test.com\",\n            \"phone\": \"9876543210\",\n            \"bloodGroup\": \"A+\",\n            \"medicalHistory\": null,\n            \"createdAt\": \"2026-01-21T12:14:49.980Z\",\n            \"updatedAt\": \"2026-01-21T12:14:49.980Z\",\n            \"__v\": 0\n        },\n        \"accessToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzBjMzM5OTlmYmVmMjgwNjk4YWM0NyIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzY4OTk3NjkwLCJleHAiOjE3Njg5OTg1OTB9.pREPTp8WaWz7gVPotJTHMO81_dl9Q1sQ1dQhjoiQy0w\",\n        \"refreshToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzBjMzM5OTlmYmVmMjgwNjk4YWM0NyIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzY4OTk3NjkwLCJleHAiOjE3Njk2MDI0OTB9.o5SqCBTDwt3zVizV-7HKDNo3fyuvDXcaNuu5hBpcUZA\"\n    },\n    \"status\": true\n}"
+								}
+							]
+						},
+						{
+							"name": "User-Login",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"phone\": \"9876543210\",\n  \"password\": \"password123\"\n}\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseURL}}/api/v2/user/login",
+									"host": [
+										"{{baseURL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"user",
+										"login"
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "User-Login",
+									"originalRequest": {
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"phone\": \"9876543210\",\n  \"password\": \"password123\"\n}\n",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{baseURL}}/api/v2/user/login",
+											"host": [
+												"{{baseURL}}"
+											],
+											"path": [
+												"api",
+												"v2",
+												"user",
+												"login"
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": null,
+									"header": [
+										{
+											"key": "X-Powered-By",
+											"value": "Express"
+										},
+										{
+											"key": "Access-Control-Allow-Origin",
+											"value": "http://localhost:5000"
+										},
+										{
+											"key": "Vary",
+											"value": "Origin"
+										},
+										{
+											"key": "Access-Control-Allow-Credentials",
+											"value": "true"
+										},
+										{
+											"key": "Set-Cookie",
+											"value": "accessToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzBjMzM5OTlmYmVmMjgwNjk4YWM0NyIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzY4OTk3NzMzLCJleHAiOjE3Njg5OTg2MzN9.wMDV7c6lFmNvZ0ugBr6G_H4tVStufdT-SOFnAiIrOPs; Max-Age=900; Path=/; Expires=Wed, 21 Jan 2026 12:30:33 GMT; HttpOnly; SameSite=Strict"
+										},
+										{
+											"key": "Set-Cookie",
+											"value": "refreshToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzBjMzM5OTlmYmVmMjgwNjk4YWM0NyIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzY4OTk3NzMzLCJleHAiOjE3Njk2MDI1MzN9.gdi2CdocTNCM6wc_lDsSk8J3uaC_xNMCD7Y_AwLNZKQ; Max-Age=604800; Path=/; Expires=Wed, 28 Jan 2026 12:15:33 GMT; HttpOnly; SameSite=Strict"
+										},
+										{
+											"key": "Content-Type",
+											"value": "application/json; charset=utf-8"
+										},
+										{
+											"key": "Content-Length",
+											"value": "786"
+										},
+										{
+											"key": "ETag",
+											"value": "W/\"312-oSxWQZH+PXixcPEeGsZOU6OOABU\""
+										},
+										{
+											"key": "Date",
+											"value": "Wed, 21 Jan 2026 12:15:33 GMT"
+										},
+										{
+											"key": "Connection",
+											"value": "keep-alive"
+										},
+										{
+											"key": "Keep-Alive",
+											"value": "timeout=5"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"statusCode\": 200,\n    \"message\": \"User logged in successfully\",\n    \"data\": {\n        \"user\": {\n            \"location\": {\n                \"type\": \"Point\",\n                \"coordinates\": [\n                    78.4867,\n                    17.385\n                ]\n            },\n            \"_id\": \"6970c33999fbef280698ac47\",\n            \"name\": \"sai krishna\",\n            \"email\": \"sai@test.com\",\n            \"phone\": \"9876543210\",\n            \"bloodGroup\": \"A+\",\n            \"medicalHistory\": null,\n            \"createdAt\": \"2026-01-21T12:14:49.980Z\",\n            \"updatedAt\": \"2026-01-21T12:15:33.411Z\",\n            \"__v\": 0\n        },\n        \"accessToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzBjMzM5OTlmYmVmMjgwNjk4YWM0NyIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzY4OTk3NzMzLCJleHAiOjE3Njg5OTg2MzN9.wMDV7c6lFmNvZ0ugBr6G_H4tVStufdT-SOFnAiIrOPs\",\n        \"refreshToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzBjMzM5OTlmYmVmMjgwNjk4YWM0NyIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzY4OTk3NzMzLCJleHAiOjE3Njk2MDI1MzN9.gdi2CdocTNCM6wc_lDsSk8J3uaC_xNMCD7Y_AwLNZKQ\"\n    },\n    \"status\": true\n}"
+								}
+							]
+						},
+						{
+							"name": "User-Logout",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{baseURL}}/api/v2/user/logout",
+									"host": [
+										"{{baseURL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"user",
+										"logout"
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "User-Logout",
+									"originalRequest": {
+										"method": "POST",
+										"header": [],
+										"url": {
+											"raw": "{{baseURL}}/api/v2/user/logout",
+											"host": [
+												"{{baseURL}}"
+											],
+											"path": [
+												"api",
+												"v2",
+												"user",
+												"logout"
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": null,
+									"header": [
+										{
+											"key": "X-Powered-By",
+											"value": "Express"
+										},
+										{
+											"key": "Access-Control-Allow-Origin",
+											"value": "http://localhost:5000"
+										},
+										{
+											"key": "Vary",
+											"value": "Origin"
+										},
+										{
+											"key": "Access-Control-Allow-Credentials",
+											"value": "true"
+										},
+										{
+											"key": "Set-Cookie",
+											"value": "accessToken=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; SameSite=Strict"
+										},
+										{
+											"key": "Set-Cookie",
+											"value": "refreshToken=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; SameSite=Strict"
+										},
+										{
+											"key": "Content-Type",
+											"value": "application/json; charset=utf-8"
+										},
+										{
+											"key": "Content-Length",
+											"value": "83"
+										},
+										{
+											"key": "ETag",
+											"value": "W/\"53-UGx0LedktLuVqwV9MmX5bqkKpbI\""
+										},
+										{
+											"key": "Date",
+											"value": "Wed, 21 Jan 2026 12:16:54 GMT"
+										},
+										{
+											"key": "Connection",
+											"value": "keep-alive"
+										},
+										{
+											"key": "Keep-Alive",
+											"value": "timeout=5"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"statusCode\": 200,\n    \"message\": \"User logged out successfully\",\n    \"data\": {},\n    \"status\": true\n}"
+								}
+							]
+						},
+						{
+							"name": "User-Me",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"driverPhone\": \"9876543210\",\n  \"password\": \"secret123\"\n}\n"
+								},
+								"url": {
+									"raw": "{{baseURL}}/api/v2/user/me",
+									"host": [
+										"{{baseURL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"user",
+										"me"
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "User-Me",
+									"originalRequest": {
+										"method": "GET",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"driverPhone\": \"9876543210\",\n  \"password\": \"secret123\"\n}\n"
+										},
+										"url": {
+											"raw": "{{baseURL}}/api/v2/user/me",
+											"host": [
+												"{{baseURL}}"
+											],
+											"path": [
+												"api",
+												"v2",
+												"user",
+												"me"
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": null,
+									"header": [
+										{
+											"key": "X-Powered-By",
+											"value": "Express"
+										},
+										{
+											"key": "Access-Control-Allow-Origin",
+											"value": "http://localhost:5000"
+										},
+										{
+											"key": "Vary",
+											"value": "Origin"
+										},
+										{
+											"key": "Access-Control-Allow-Credentials",
+											"value": "true"
+										},
+										{
+											"key": "Content-Type",
+											"value": "application/json; charset=utf-8"
+										},
+										{
+											"key": "Content-Length",
+											"value": "370"
+										},
+										{
+											"key": "ETag",
+											"value": "W/\"172-sMl/3sHfNcXu6r6mPoOmup68gfk\""
+										},
+										{
+											"key": "Date",
+											"value": "Wed, 21 Jan 2026 12:17:10 GMT"
+										},
+										{
+											"key": "Connection",
+											"value": "keep-alive"
+										},
+										{
+											"key": "Keep-Alive",
+											"value": "timeout=5"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"statusCode\": 200,\n    \"message\": \"User profile fetched successfully\",\n    \"data\": {\n        \"location\": {\n            \"type\": \"Point\",\n            \"coordinates\": [\n                78.4867,\n                17.385\n            ]\n        },\n        \"_id\": \"6970c33999fbef280698ac47\",\n        \"name\": \"sai krishna\",\n        \"email\": \"sai@test.com\",\n        \"phone\": \"9876543210\",\n        \"bloodGroup\": \"A+\",\n        \"medicalHistory\": null,\n        \"createdAt\": \"2026-01-21T12:14:49.980Z\",\n        \"updatedAt\": \"2026-01-21T12:17:01.831Z\",\n        \"__v\": 0\n    },\n    \"status\": true\n}"
+								}
+							]
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Ambulance",
+			"item": [
+				{
+					"name": "Auth",
+					"item": [
+						{
+							"name": "Register",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"driverName\": \"Ravi Kumar\",\n  \"driverPhone\": \"9876543210\",\n  \"password\": \"secret123\",\n  \"vehicleNumber\": \"TS09AB1234\",\n  \"status\": \"offline\",\n  \"location\": {\n    \"type\": \"Point\",\n    \"coordinates\": [78.4746, 17.3616]\n  }\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseURL}}/api/v2/ambulance/register",
+									"host": [
+										"{{baseURL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"ambulance",
+										"register"
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "Register",
+									"originalRequest": {
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"driverName\": \"sai Kumar\",\n  \"driverPhone\": \"8876543210\",\n  \"password\": \"secret123\",\n  \"vehicleNumber\": \"TS09AB1235\",\n  \"status\": \"offline\",\n  \"location\": {\n    \"type\": \"Point\",\n    \"coordinates\": [78.4746, 17.3616]\n  }\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{baseURL}}/api/v2/ambulance/register",
+											"host": [
+												"{{baseURL}}"
+											],
+											"path": [
+												"api",
+												"v2",
+												"ambulance",
+												"register"
+											]
+										}
+									},
+									"status": "Created",
+									"code": 201,
+									"_postman_previewlanguage": null,
+									"header": [
+										{
+											"key": "X-Powered-By",
+											"value": "Express"
+										},
+										{
+											"key": "Access-Control-Allow-Origin",
+											"value": "http://localhost:5000"
+										},
+										{
+											"key": "Vary",
+											"value": "Origin"
+										},
+										{
+											"key": "Access-Control-Allow-Credentials",
+											"value": "true"
+										},
+										{
+											"key": "Set-Cookie",
+											"value": "accessToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzBjNDEzOTlmYmVmMjgwNjk4YWM1OSIsInJvbGUiOiJhbWJ1bGFuY2UiLCJpYXQiOjE3Njg5OTc5MDcsImV4cCI6MTc2ODk5ODgwN30.KmtlT5YsBSv4UOsjYgYeSTLUDTxwlebUbWErVDLkbtI; Max-Age=900; Path=/; Expires=Wed, 21 Jan 2026 12:33:27 GMT; HttpOnly; SameSite=Strict"
+										},
+										{
+											"key": "Set-Cookie",
+											"value": "refreshToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzBjNDEzOTlmYmVmMjgwNjk4YWM1OSIsInJvbGUiOiJhbWJ1bGFuY2UiLCJpYXQiOjE3Njg5OTc5MDcsImV4cCI6MTc2OTYwMjcwN30.BmuvLGDecZpdImvV_nlbBYEothoHSOGd7XTm62bVfC8; Max-Age=604800; Path=/; Expires=Wed, 28 Jan 2026 12:18:27 GMT; HttpOnly; SameSite=Strict"
+										},
+										{
+											"key": "Content-Type",
+											"value": "application/json; charset=utf-8"
+										},
+										{
+											"key": "Content-Length",
+											"value": "1021"
+										},
+										{
+											"key": "ETag",
+											"value": "W/\"3fd-7UFNFL7zx+xy7UgNyD6VeEBx45s\""
+										},
+										{
+											"key": "Date",
+											"value": "Wed, 21 Jan 2026 12:18:27 GMT"
+										},
+										{
+											"key": "Connection",
+											"value": "keep-alive"
+										},
+										{
+											"key": "Keep-Alive",
+											"value": "timeout=5"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"statusCode\": 201,\n    \"message\": \"Ambulance registered successfully\",\n    \"data\": {\n        \"ambulance\": {\n            \"location\": {\n                \"type\": \"Point\",\n                \"coordinates\": [\n                    78.4746,\n                    17.3616\n                ]\n            },\n            \"_id\": \"6970c41399fbef280698ac59\",\n            \"driverName\": \"sai Kumar\",\n            \"driverPhone\": \"8876543210\",\n            \"vehicleNumber\": \"TS09AB1235\",\n            \"status\": \"offline\",\n            \"createdAt\": \"2026-01-21T12:18:27.392Z\",\n            \"updatedAt\": \"2026-01-21T12:18:27.444Z\",\n            \"__v\": 0,\n            \"refreshToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzBjNDEzOTlmYmVmMjgwNjk4YWM1OSIsInJvbGUiOiJhbWJ1bGFuY2UiLCJpYXQiOjE3Njg5OTc5MDcsImV4cCI6MTc2OTYwMjcwN30.BmuvLGDecZpdImvV_nlbBYEothoHSOGd7XTm62bVfC8\"\n        },\n        \"accessToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzBjNDEzOTlmYmVmMjgwNjk4YWM1OSIsInJvbGUiOiJhbWJ1bGFuY2UiLCJpYXQiOjE3Njg5OTc5MDcsImV4cCI6MTc2ODk5ODgwN30.KmtlT5YsBSv4UOsjYgYeSTLUDTxwlebUbWErVDLkbtI\",\n        \"refreshToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzBjNDEzOTlmYmVmMjgwNjk4YWM1OSIsInJvbGUiOiJhbWJ1bGFuY2UiLCJpYXQiOjE3Njg5OTc5MDcsImV4cCI6MTc2OTYwMjcwN30.BmuvLGDecZpdImvV_nlbBYEothoHSOGd7XTm62bVfC8\"\n    },\n    \"status\": true\n}"
+								}
+							]
+						},
+						{
+							"name": "Login",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"driverPhone\": \"8876543210\",\n  \"password\": \"secret123\"\n}\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseURL}}/api/v2/ambulance/login",
+									"host": [
+										"{{baseURL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"ambulance",
+										"login"
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "Login",
+									"originalRequest": {
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"driverPhone\": \"8876543210\",\n  \"password\": \"secret123\"\n}\n",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{baseURL}}/api/v2/ambulance/login",
+											"host": [
+												"{{baseURL}}"
+											],
+											"path": [
+												"api",
+												"v2",
+												"ambulance",
+												"login"
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": null,
+									"header": [
+										{
+											"key": "X-Powered-By",
+											"value": "Express"
+										},
+										{
+											"key": "Access-Control-Allow-Origin",
+											"value": "http://localhost:5000"
+										},
+										{
+											"key": "Vary",
+											"value": "Origin"
+										},
+										{
+											"key": "Access-Control-Allow-Credentials",
+											"value": "true"
+										},
+										{
+											"key": "Set-Cookie",
+											"value": "accessToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzBjNDEzOTlmYmVmMjgwNjk4YWM1OSIsInJvbGUiOiJhbWJ1bGFuY2UiLCJpYXQiOjE3Njg5OTc5MzEsImV4cCI6MTc2ODk5ODgzMX0.7zqqLn8faI4_XgpxOp5j8LtFvmEVQyWhwnvS0gMK5rg; Max-Age=900; Path=/; Expires=Wed, 21 Jan 2026 12:33:51 GMT; HttpOnly; SameSite=Strict"
+										},
+										{
+											"key": "Set-Cookie",
+											"value": "refreshToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzBjNDEzOTlmYmVmMjgwNjk4YWM1OSIsInJvbGUiOiJhbWJ1bGFuY2UiLCJpYXQiOjE3Njg5OTc5MzEsImV4cCI6MTc2OTYwMjczMX0.RsZ3FpoYTQjMDhE467De5K8VPH_C2w-8tCyv0MZA0kM; Max-Age=604800; Path=/; Expires=Wed, 28 Jan 2026 12:18:51 GMT; HttpOnly; SameSite=Strict"
+										},
+										{
+											"key": "Content-Type",
+											"value": "application/json; charset=utf-8"
+										},
+										{
+											"key": "Content-Length",
+											"value": "806"
+										},
+										{
+											"key": "ETag",
+											"value": "W/\"326-h1Jbsu9slFj2+YCDBdXeDDu4snk\""
+										},
+										{
+											"key": "Date",
+											"value": "Wed, 21 Jan 2026 12:18:51 GMT"
+										},
+										{
+											"key": "Connection",
+											"value": "keep-alive"
+										},
+										{
+											"key": "Keep-Alive",
+											"value": "timeout=5"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"statusCode\": 200,\n    \"message\": \"Ambulance logged in successfully\",\n    \"data\": {\n        \"ambulance\": {\n            \"location\": {\n                \"type\": \"Point\",\n                \"coordinates\": [\n                    78.4746,\n                    17.3616\n                ]\n            },\n            \"_id\": \"6970c41399fbef280698ac59\",\n            \"driverName\": \"sai Kumar\",\n            \"driverPhone\": \"8876543210\",\n            \"vehicleNumber\": \"TS09AB1235\",\n            \"status\": \"offline\",\n            \"createdAt\": \"2026-01-21T12:18:27.392Z\",\n            \"updatedAt\": \"2026-01-21T12:18:51.361Z\",\n            \"__v\": 0\n        },\n        \"accessToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzBjNDEzOTlmYmVmMjgwNjk4YWM1OSIsInJvbGUiOiJhbWJ1bGFuY2UiLCJpYXQiOjE3Njg5OTc5MzEsImV4cCI6MTc2ODk5ODgzMX0.7zqqLn8faI4_XgpxOp5j8LtFvmEVQyWhwnvS0gMK5rg\",\n        \"refreshToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzBjNDEzOTlmYmVmMjgwNjk4YWM1OSIsInJvbGUiOiJhbWJ1bGFuY2UiLCJpYXQiOjE3Njg5OTc5MzEsImV4cCI6MTc2OTYwMjczMX0.RsZ3FpoYTQjMDhE467De5K8VPH_C2w-8tCyv0MZA0kM\"\n    },\n    \"status\": true\n}"
+								}
+							]
+						},
+						{
+							"name": "Logout",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"driverPhone\": \"9876543210\",\n  \"password\": \"secret123\"\n}\n"
+								},
+								"url": {
+									"raw": "{{baseURL}}/api/v2/ambulance/logout",
+									"host": [
+										"{{baseURL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"ambulance",
+										"logout"
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "Logout",
+									"originalRequest": {
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"driverPhone\": \"9876543210\",\n  \"password\": \"secret123\"\n}\n"
+										},
+										"url": {
+											"raw": "{{baseURL}}/api/v2/ambulance/logout",
+											"host": [
+												"{{baseURL}}"
+											],
+											"path": [
+												"api",
+												"v2",
+												"ambulance",
+												"logout"
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": null,
+									"header": [
+										{
+											"key": "X-Powered-By",
+											"value": "Express"
+										},
+										{
+											"key": "Access-Control-Allow-Origin",
+											"value": "http://localhost:5000"
+										},
+										{
+											"key": "Vary",
+											"value": "Origin"
+										},
+										{
+											"key": "Access-Control-Allow-Credentials",
+											"value": "true"
+										},
+										{
+											"key": "Set-Cookie",
+											"value": "accessToken=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; SameSite=Strict"
+										},
+										{
+											"key": "Set-Cookie",
+											"value": "refreshToken=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; SameSite=Strict"
+										},
+										{
+											"key": "Content-Type",
+											"value": "application/json; charset=utf-8"
+										},
+										{
+											"key": "Content-Length",
+											"value": "88"
+										},
+										{
+											"key": "ETag",
+											"value": "W/\"58-9vBXCWLKCkUlk9SRh2fF4ztBIUI\""
+										},
+										{
+											"key": "Date",
+											"value": "Wed, 21 Jan 2026 12:19:05 GMT"
+										},
+										{
+											"key": "Connection",
+											"value": "keep-alive"
+										},
+										{
+											"key": "Keep-Alive",
+											"value": "timeout=5"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"statusCode\": 200,\n    \"message\": \"Ambulance logged out successfully\",\n    \"data\": {},\n    \"status\": true\n}"
+								}
+							]
+						},
+						{
+							"name": "Me",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"driverPhone\": \"9876543210\",\n  \"password\": \"secret123\"\n}\n"
+								},
+								"url": {
+									"raw": "{{baseURL}}/api/v2/ambulance/me",
+									"host": [
+										"{{baseURL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"ambulance",
+										"me"
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "Me",
+									"originalRequest": {
+										"method": "GET",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"driverPhone\": \"9876543210\",\n  \"password\": \"secret123\"\n}\n"
+										},
+										"url": {
+											"raw": "{{baseURL}}/api/v2/ambulance/me",
+											"host": [
+												"{{baseURL}}"
+											],
+											"path": [
+												"api",
+												"v2",
+												"ambulance",
+												"me"
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": null,
+									"header": [
+										{
+											"key": "X-Powered-By",
+											"value": "Express"
+										},
+										{
+											"key": "Access-Control-Allow-Origin",
+											"value": "http://localhost:5000"
+										},
+										{
+											"key": "Vary",
+											"value": "Origin"
+										},
+										{
+											"key": "Access-Control-Allow-Credentials",
+											"value": "true"
+										},
+										{
+											"key": "Content-Type",
+											"value": "application/json; charset=utf-8"
+										},
+										{
+											"key": "Content-Length",
+											"value": "371"
+										},
+										{
+											"key": "ETag",
+											"value": "W/\"173-Ft1SlZlfhL4uIDW/rrpgwhiNcLU\""
+										},
+										{
+											"key": "Date",
+											"value": "Wed, 21 Jan 2026 12:19:28 GMT"
+										},
+										{
+											"key": "Connection",
+											"value": "keep-alive"
+										},
+										{
+											"key": "Keep-Alive",
+											"value": "timeout=5"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"statusCode\": 200,\n    \"message\": \"Ambulance profile fetched successfully\",\n    \"data\": {\n        \"location\": {\n            \"type\": \"Point\",\n            \"coordinates\": [\n                78.4746,\n                17.3616\n            ]\n        },\n        \"_id\": \"6970c41399fbef280698ac59\",\n        \"driverName\": \"sai Kumar\",\n        \"driverPhone\": \"8876543210\",\n        \"vehicleNumber\": \"TS09AB1235\",\n        \"status\": \"offline\",\n        \"createdAt\": \"2026-01-21T12:18:27.392Z\",\n        \"updatedAt\": \"2026-01-21T12:19:24.433Z\",\n        \"__v\": 0\n    },\n    \"status\": true\n}"
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "Services",
+					"item": [
+						{
+							"name": "Update-status",
+							"request": {
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"status\": \"ready\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseURL}}/api/v2/ambulance/status",
+									"host": [
+										"{{baseURL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"ambulance",
+										"status"
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "Update-status",
+									"originalRequest": {
+										"method": "PATCH",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"status\": \"ready\"\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{baseURL}}/api/v2/ambulance/status",
+											"host": [
+												"{{baseURL}}"
+											],
+											"path": [
+												"api",
+												"v2",
+												"ambulance",
+												"status"
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": null,
+									"header": [
+										{
+											"key": "X-Powered-By",
+											"value": "Express"
+										},
+										{
+											"key": "Access-Control-Allow-Origin",
+											"value": "http://localhost:5000"
+										},
+										{
+											"key": "Vary",
+											"value": "Origin"
+										},
+										{
+											"key": "Access-Control-Allow-Credentials",
+											"value": "true"
+										},
+										{
+											"key": "Content-Type",
+											"value": "application/json; charset=utf-8"
+										},
+										{
+											"key": "Content-Length",
+											"value": "368"
+										},
+										{
+											"key": "ETag",
+											"value": "W/\"170-OlkZl+ZKYHNzMP00WxLVyiWUZLs\""
+										},
+										{
+											"key": "Date",
+											"value": "Wed, 21 Jan 2026 12:19:57 GMT"
+										},
+										{
+											"key": "Connection",
+											"value": "keep-alive"
+										},
+										{
+											"key": "Keep-Alive",
+											"value": "timeout=5"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"statusCode\": 200,\n    \"message\": \"Ambulance status updated successfully\",\n    \"data\": {\n        \"location\": {\n            \"type\": \"Point\",\n            \"coordinates\": [\n                78.4746,\n                17.3616\n            ]\n        },\n        \"_id\": \"6970c41399fbef280698ac59\",\n        \"driverName\": \"sai Kumar\",\n        \"driverPhone\": \"8876543210\",\n        \"vehicleNumber\": \"TS09AB1235\",\n        \"status\": \"ready\",\n        \"createdAt\": \"2026-01-21T12:18:27.392Z\",\n        \"updatedAt\": \"2026-01-21T12:19:57.946Z\",\n        \"__v\": 0\n    },\n    \"status\": true\n}"
+								}
+							]
+						},
+						{
+							"name": "update-location",
+							"request": {
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"location\": {\n    \"type\": \"Point\",\n    \"coordinates\": [78.48237, 17.3850]\n  }\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseURL}}/api/v2/ambulance/location",
+									"host": [
+										"{{baseURL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"ambulance",
+										"location"
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "update-location",
+									"originalRequest": {
+										"method": "PATCH",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"location\": {\n    \"type\": \"Point\",\n    \"coordinates\": [78.48227, 17.3830]\n  }\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{baseURL}}/api/v2/ambulance/location",
+											"host": [
+												"{{baseURL}}"
+											],
+											"path": [
+												"api",
+												"v2",
+												"ambulance",
+												"location"
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": null,
+									"header": [
+										{
+											"key": "X-Powered-By",
+											"value": "Express"
+										},
+										{
+											"key": "Access-Control-Allow-Origin",
+											"value": "http://localhost:5000"
+										},
+										{
+											"key": "Vary",
+											"value": "Origin"
+										},
+										{
+											"key": "Access-Control-Allow-Credentials",
+											"value": "true"
+										},
+										{
+											"key": "Content-Type",
+											"value": "application/json; charset=utf-8"
+										},
+										{
+											"key": "Content-Length",
+											"value": "370"
+										},
+										{
+											"key": "ETag",
+											"value": "W/\"172-1Yb66j+d3belnTLyt8KcRukD92Y\""
+										},
+										{
+											"key": "Date",
+											"value": "Wed, 21 Jan 2026 12:20:40 GMT"
+										},
+										{
+											"key": "Connection",
+											"value": "keep-alive"
+										},
+										{
+											"key": "Keep-Alive",
+											"value": "timeout=5"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"statusCode\": 200,\n    \"message\": \"Ambulance location updated successfully\",\n    \"data\": {\n        \"location\": {\n            \"type\": \"Point\",\n            \"coordinates\": [\n                78.48227,\n                17.383\n            ]\n        },\n        \"_id\": \"6970c41399fbef280698ac59\",\n        \"driverName\": \"sai Kumar\",\n        \"driverPhone\": \"8876543210\",\n        \"vehicleNumber\": \"TS09AB1235\",\n        \"status\": \"ready\",\n        \"createdAt\": \"2026-01-21T12:18:27.392Z\",\n        \"updatedAt\": \"2026-01-21T12:20:40.780Z\",\n        \"__v\": 0\n    },\n    \"status\": true\n}"
+								}
+							]
+						},
+						{
+							"name": "NearByAmbulance",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseURL}}/api/v2/ambulance/nearby?longitude=78.4746&latitude=17.3616&limit=2",
+									"host": [
+										"{{baseURL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"ambulance",
+										"nearby"
+									],
+									"query": [
+										{
+											"key": "longitude",
+											"value": "78.4746"
+										},
+										{
+											"key": "latitude",
+											"value": "17.3616"
+										},
+										{
+											"key": "limit",
+											"value": "2"
+										}
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "NearByAmbulance",
+									"originalRequest": {
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{baseURL}}/api/v2/ambulance/nearby?longitude=78.4746&latitude=17.3616&limit=2",
+											"host": [
+												"{{baseURL}}"
+											],
+											"path": [
+												"api",
+												"v2",
+												"ambulance",
+												"nearby"
+											],
+											"query": [
+												{
+													"key": "longitude",
+													"value": "78.4746"
+												},
+												{
+													"key": "latitude",
+													"value": "17.3616"
+												},
+												{
+													"key": "limit",
+													"value": "2"
+												}
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": null,
+									"header": [
+										{
+											"key": "X-Powered-By",
+											"value": "Express"
+										},
+										{
+											"key": "Access-Control-Allow-Origin",
+											"value": "http://localhost:5000"
+										},
+										{
+											"key": "Vary",
+											"value": "Origin"
+										},
+										{
+											"key": "Access-Control-Allow-Credentials",
+											"value": "true"
+										},
+										{
+											"key": "Content-Type",
+											"value": "application/json; charset=utf-8"
+										},
+										{
+											"key": "Content-Length",
+											"value": "460"
+										},
+										{
+											"key": "ETag",
+											"value": "W/\"1cc-Y0BlSYWUzqjP3qnhCwq5qAvuZLg\""
+										},
+										{
+											"key": "Date",
+											"value": "Wed, 21 Jan 2026 12:21:07 GMT"
+										},
+										{
+											"key": "Connection",
+											"value": "keep-alive"
+										},
+										{
+											"key": "Keep-Alive",
+											"value": "timeout=5"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"statusCode\": 200,\n    \"message\": \"Found 1 nearby ambulance(s)\",\n    \"data\": {\n        \"count\": 1,\n        \"ambulances\": [\n            {\n                \"ambulanceId\": \"6970c41399fbef280698ac59\",\n                \"distance\": 2516,\n                \"ambulanceData\": {\n                    \"location\": {\n                        \"type\": \"Point\",\n                        \"coordinates\": [\n                            78.48227,\n                            17.383\n                        ]\n                    },\n                    \"_id\": \"6970c41399fbef280698ac59\",\n                    \"driverName\": \"sai Kumar\",\n                    \"driverPhone\": \"8876543210\",\n                    \"vehicleNumber\": \"TS09AB1235\",\n                    \"status\": \"ready\",\n                    \"createdAt\": \"2026-01-21T12:18:27.392Z\",\n                    \"updatedAt\": \"2026-01-21T12:20:40.780Z\",\n                    \"__v\": 0\n                }\n            }\n        ]\n    },\n    \"status\": true\n}"
+								}
+							]
+						},
+						{
+							"name": "Ambulance-stats",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseURL}}/api/v2/ambulance/stats",
+									"host": [
+										"{{baseURL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"ambulance",
+										"stats"
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "Ambulance-stats",
+									"originalRequest": {
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{baseURL}}/api/v2/ambulance/stats",
+											"host": [
+												"{{baseURL}}"
+											],
+											"path": [
+												"api",
+												"v2",
+												"ambulance",
+												"stats"
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": null,
+									"header": [
+										{
+											"key": "X-Powered-By",
+											"value": "Express"
+										},
+										{
+											"key": "Access-Control-Allow-Origin",
+											"value": "http://localhost:5000"
+										},
+										{
+											"key": "Vary",
+											"value": "Origin"
+										},
+										{
+											"key": "Access-Control-Allow-Credentials",
+											"value": "true"
+										},
+										{
+											"key": "Content-Type",
+											"value": "application/json; charset=utf-8"
+										},
+										{
+											"key": "Content-Length",
+											"value": "189"
+										},
+										{
+											"key": "ETag",
+											"value": "W/\"bd-DF8JQ+BBMs7AF4On0paV6r7TSbk\""
+										},
+										{
+											"key": "Date",
+											"value": "Wed, 21 Jan 2026 12:21:29 GMT"
+										},
+										{
+											"key": "Connection",
+											"value": "keep-alive"
+										},
+										{
+											"key": "Keep-Alive",
+											"value": "timeout=5"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"statusCode\": 200,\n    \"message\": \"Ambulance statistics retrieved successfully\",\n    \"data\": {\n        \"activeAmbulances\": 2,\n        \"ambulanceIds\": [\n            \"6970c41399fbef280698ac59\",\n            \"6942cd15980a1c1cfc33d911\"\n        ]\n    },\n    \"status\": true\n}"
+								}
+							]
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Admin",
+			"item": [
+				{
+					"name": "register-Admin",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Super Admin\",\n  \"email\": \"admin@medswift.com\",\n  \"password\": \"adminsecurepassword123\",\n  \"secretKey\": \"adminsecret\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/api/v2/admin/register",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"api",
+								"v2",
+								"admin",
+								"register"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "register-Admin",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"name\": \"Hyper Admin\",\n  \"email\": \"hyper@medswift.com\",\n  \"password\": \"adminsecurepassword123\",\n  \"secretKey\": \"adminsecret\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseURL}}/api/v2/admin/register",
+									"host": [
+										"{{baseURL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"admin",
+										"register"
+									]
+								}
+							},
+							"status": "Created",
+							"code": 201,
+							"_postman_previewlanguage": null,
+							"header": [
+								{
+									"key": "X-Powered-By",
+									"value": "Express"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "http://localhost:5000"
+								},
+								{
+									"key": "Vary",
+									"value": "Origin"
+								},
+								{
+									"key": "Access-Control-Allow-Credentials",
+									"value": "true"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "249"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"f9-NCjAvyh6GWhpJQkyhOSswkfq8O4\""
+								},
+								{
+									"key": "Date",
+									"value": "Wed, 21 Jan 2026 12:22:10 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"statusCode\": 201,\n    \"message\": \"Admin created successfully\",\n    \"data\": {\n        \"_id\": \"6970c4f299fbef280698ac6c\",\n        \"name\": \"Hyper Admin\",\n        \"email\": \"hyper@medswift.com\",\n        \"createdAt\": \"2026-01-21T12:22:10.692Z\",\n        \"updatedAt\": \"2026-01-21T12:22:10.692Z\",\n        \"__v\": 0\n    },\n    \"status\": true\n}"
+						}
+					]
+				},
+				{
+					"name": "login-Admin",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"admin@medswift.com\",\n  \"password\": \"adminsecurepassword123\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/api/v2/admin/login",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"api",
+								"v2",
+								"admin",
+								"login"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "login-Admin",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"email\": \"hyper@medswift.com\",\n  \"password\": \"adminsecurepassword123\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseURL}}/api/v2/admin/login",
+									"host": [
+										"{{baseURL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"admin",
+										"login"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": null,
+							"header": [
+								{
+									"key": "X-Powered-By",
+									"value": "Express"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "http://localhost:5000"
+								},
+								{
+									"key": "Vary",
+									"value": "Origin"
+								},
+								{
+									"key": "Access-Control-Allow-Credentials",
+									"value": "true"
+								},
+								{
+									"key": "Set-Cookie",
+									"value": "accessToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzBjNGYyOTlmYmVmMjgwNjk4YWM2YyIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc2ODk5ODE2MCwiZXhwIjoxNzY4OTk5MDYwfQ.HWnzecaIWL4fOXBS-KCLH1dElSVmbmtx0ysON-ijPfw; Max-Age=900; Path=/; Expires=Wed, 21 Jan 2026 12:37:40 GMT; HttpOnly; SameSite=Strict"
+								},
+								{
+									"key": "Set-Cookie",
+									"value": "refreshToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzBjNGYyOTlmYmVmMjgwNjk4YWM2YyIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc2ODk5ODE2MCwiZXhwIjoxNzY5NjAyOTYwfQ.in71iPrOtJgLi6eXypVLW5Q2J9ehGnE23oC1AHd8ofw; Max-Age=604800; Path=/; Expires=Wed, 28 Jan 2026 12:22:40 GMT; HttpOnly; SameSite=Strict"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "678"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"2a6-pVOHlViU8vAkASmC4bMuSa7amS0\""
+								},
+								{
+									"key": "Date",
+									"value": "Wed, 21 Jan 2026 12:22:40 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"statusCode\": 200,\n    \"message\": \"Admin logged in successfully\",\n    \"data\": {\n        \"admin\": {\n            \"_id\": \"6970c4f299fbef280698ac6c\",\n            \"name\": \"Hyper Admin\",\n            \"email\": \"hyper@medswift.com\",\n            \"createdAt\": \"2026-01-21T12:22:10.692Z\",\n            \"updatedAt\": \"2026-01-21T12:22:40.766Z\",\n            \"__v\": 0\n        },\n        \"accessToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzBjNGYyOTlmYmVmMjgwNjk4YWM2YyIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc2ODk5ODE2MCwiZXhwIjoxNzY4OTk5MDYwfQ.HWnzecaIWL4fOXBS-KCLH1dElSVmbmtx0ysON-ijPfw\",\n        \"refreshToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzBjNGYyOTlmYmVmMjgwNjk4YWM2YyIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc2ODk5ODE2MCwiZXhwIjoxNzY5NjAyOTYwfQ.in71iPrOtJgLi6eXypVLW5Q2J9ehGnE23oC1AHd8ofw\"\n    },\n    \"status\": true\n}"
+						}
+					]
+				},
+				{
+					"name": "me-Admin",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/api/v2/admin/me",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"api",
+								"v2",
+								"admin",
+								"me"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "me-Admin",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseURL}}/api/v2/admin/me",
+									"host": [
+										"{{baseURL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"admin",
+										"me"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": null,
+							"header": [
+								{
+									"key": "X-Powered-By",
+									"value": "Express"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "http://localhost:5000"
+								},
+								{
+									"key": "Vary",
+									"value": "Origin"
+								},
+								{
+									"key": "Access-Control-Allow-Credentials",
+									"value": "true"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "236"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"ec-YCorNee5d5T92GkAJ5d/nDvwjdo\""
+								},
+								{
+									"key": "Date",
+									"value": "Wed, 21 Jan 2026 12:23:00 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"statusCode\": 200,\n    \"message\": \"Admin profile\",\n    \"data\": {\n        \"_id\": \"6970c4f299fbef280698ac6c\",\n        \"name\": \"Hyper Admin\",\n        \"email\": \"hyper@medswift.com\",\n        \"createdAt\": \"2026-01-21T12:22:10.692Z\",\n        \"updatedAt\": \"2026-01-21T12:22:40.766Z\",\n        \"__v\": 0\n    },\n    \"status\": true\n}"
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "hospital",
+			"item": [
+				{
+					"name": "Auth",
+					"item": [
+						{
+							"name": "Hospital-Register",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"name\": \"City General Hospital\",\n  \"email\": \"contact@cityhospital.com\",\n  \"password\": \"secure123\",\n  \"phone\": \"+1234567890\",\n  \"address\": \"123 Medical Center Drive, Healthcare City\",\n  \"location\": {\n    \"type\": \"Point\",\n    \"coordinates\": [78.4867, 17.3850]\n  },\n  \"inventory\": {\n    \"beds\": {\n      \"total\": 200,\n      \"available\": 50\n    },\n    \"bloodStock\": {\n      \"A_positive\": 10,\n      \"A_negative\": 5,\n      \"B_positive\": 8,\n      \"O_positive\": 15,\n      \"O_negative\": 3,\n      \"AB_positive\": 6,\n      \"AB_negative\": 2\n    }\n  }\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseURL}}/api/v2/hospital/register",
+									"host": [
+										"{{baseURL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"hospital",
+										"register"
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "Hospital-Register",
+									"originalRequest": {
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"name\": \"Hyderabad General Hospital\",\n  \"email\": \"contact@Hyderabadhospital.com\",\n  \"password\": \"secure123\",\n  \"phone\": \"+1334567890\",\n  \"address\": \"123 Medical Center Drive, Healthcare City\",\n  \"location\": {\n    \"type\": \"Point\",\n    \"coordinates\": [78.4867, 17.3850]\n  },\n  \"inventory\": {\n    \"beds\": {\n      \"total\": 200,\n      \"available\": 50\n    },\n    \"bloodStock\": {\n      \"A_positive\": 10,\n      \"A_negative\": 5,\n      \"B_positive\": 8,\n      \"O_positive\": 15,\n      \"O_negative\": 3,\n      \"AB_positive\": 6,\n      \"AB_negative\": 2\n    }\n  }\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{baseURL}}/api/v2/hospital/register",
+											"host": [
+												"{{baseURL}}"
+											],
+											"path": [
+												"api",
+												"v2",
+												"hospital",
+												"register"
+											]
+										}
+									},
+									"status": "Created",
+									"code": 201,
+									"_postman_previewlanguage": null,
+									"header": [
+										{
+											"key": "X-Powered-By",
+											"value": "Express"
+										},
+										{
+											"key": "Access-Control-Allow-Origin",
+											"value": "http://localhost:5000"
+										},
+										{
+											"key": "Vary",
+											"value": "Origin"
+										},
+										{
+											"key": "Access-Control-Allow-Credentials",
+											"value": "true"
+										},
+										{
+											"key": "Set-Cookie",
+											"value": "accessToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzBjNjUzOTQ3YTAzZDdjMzhmYjA5ZSIsInJvbGUiOiJob3NwaXRhbCIsImlhdCI6MTc2ODk5ODQ4MywiZXhwIjoxNzY4OTk5MzgzfQ.DXO7hhE2_enz4Y_QP2DBG18OfN6Q44uzLc4UqDXeT2w; Max-Age=900; Path=/; Expires=Wed, 21 Jan 2026 12:43:03 GMT; HttpOnly; SameSite=Strict"
+										},
+										{
+											"key": "Set-Cookie",
+											"value": "refreshToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzBjNjUzOTQ3YTAzZDdjMzhmYjA5ZSIsInJvbGUiOiJob3NwaXRhbCIsImlhdCI6MTc2ODk5ODQ4MywiZXhwIjoxNzY5NjAzMjgzfQ.9uqW-b9nLpSb1NlHfop93qWCgB44Eqh9kzvaL3B28wQ; Max-Age=604800; Path=/; Expires=Wed, 28 Jan 2026 12:28:03 GMT; HttpOnly; SameSite=Strict"
+										},
+										{
+											"key": "Content-Type",
+											"value": "application/json; charset=utf-8"
+										},
+										{
+											"key": "Content-Length",
+											"value": "1256"
+										},
+										{
+											"key": "ETag",
+											"value": "W/\"4e8-GeapN3XdDTaj0SlM++imSI27mbg\""
+										},
+										{
+											"key": "Date",
+											"value": "Wed, 21 Jan 2026 12:28:03 GMT"
+										},
+										{
+											"key": "Connection",
+											"value": "keep-alive"
+										},
+										{
+											"key": "Keep-Alive",
+											"value": "timeout=5"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"statusCode\": 201,\n    \"message\": \"Hospital registered successfully\",\n    \"data\": {\n        \"hospital\": {\n            \"location\": {\n                \"type\": \"Point\",\n                \"coordinates\": [\n                    78.4867,\n                    17.385\n                ]\n            },\n            \"inventory\": {\n                \"beds\": {\n                    \"total\": 200,\n                    \"available\": 50\n                },\n                \"bloodStock\": {\n                    \"A_positive\": 10,\n                    \"A_negative\": 5,\n                    \"B_positive\": 8,\n                    \"B_negative\": 0,\n                    \"O_positive\": 15,\n                    \"O_negative\": 3,\n                    \"AB_positive\": 6,\n                    \"AB_negative\": 2\n                }\n            },\n            \"_id\": \"6970c653947a03d7c38fb09e\",\n            \"name\": \"Hyderabad General Hospital\",\n            \"email\": \"contact@hyderabadhospital.com\",\n            \"phone\": \"+1334567890\",\n            \"address\": \"123 Medical Center Drive, Healthcare City\",\n            \"createdAt\": \"2026-01-21T12:28:03.381Z\",\n            \"updatedAt\": \"2026-01-21T12:28:03.439Z\",\n            \"__v\": 0,\n            \"refreshToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzBjNjUzOTQ3YTAzZDdjMzhmYjA5ZSIsInJvbGUiOiJob3NwaXRhbCIsImlhdCI6MTc2ODk5ODQ4MywiZXhwIjoxNzY5NjAzMjgzfQ.9uqW-b9nLpSb1NlHfop93qWCgB44Eqh9kzvaL3B28wQ\"\n        },\n        \"accessToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzBjNjUzOTQ3YTAzZDdjMzhmYjA5ZSIsInJvbGUiOiJob3NwaXRhbCIsImlhdCI6MTc2ODk5ODQ4MywiZXhwIjoxNzY4OTk5MzgzfQ.DXO7hhE2_enz4Y_QP2DBG18OfN6Q44uzLc4UqDXeT2w\",\n        \"refreshToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzBjNjUzOTQ3YTAzZDdjMzhmYjA5ZSIsInJvbGUiOiJob3NwaXRhbCIsImlhdCI6MTc2ODk5ODQ4MywiZXhwIjoxNzY5NjAzMjgzfQ.9uqW-b9nLpSb1NlHfop93qWCgB44Eqh9kzvaL3B28wQ\"\n    },\n    \"status\": true\n}"
+								}
+							]
+						},
+						{
+							"name": "Hospital-Login",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"name\": \"City General Hospital\",\n  \"email\": \"contact@cityhospital.com\",\n  \"password\": \"secure123\",\n  \"phone\": \"+1234567890\",\n  \"address\": \"123 Medical Center Drive, Healthcare City\",\n  \"location\": {\n    \"type\": \"Point\",\n    \"coordinates\": [78.4867, 17.3850]\n  },\n  \"inventory\": {\n    \"beds\": {\n      \"total\": 200,\n      \"available\": 50\n    },\n    \"bloodStock\": {\n      \"A_positive\": 10,\n      \"A_negative\": 5,\n      \"B_positive\": 8,\n      \"O_positive\": 15,\n      \"O_negative\": 3,\n      \"AB_positive\": 6,\n      \"AB_negative\": 2\n    }\n  }\n}"
+								},
+								"url": {
+									"raw": "{{baseURL}}/api/v2/hospital/login",
+									"host": [
+										"{{baseURL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"hospital",
+										"login"
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "New Request",
+									"originalRequest": {
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"email\": \"contact@hyderabadhospital.com\",\n  \"password\": \"secure123\"\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{baseURL}}/api/v2/hospital/login",
+											"host": [
+												"{{baseURL}}"
+											],
+											"path": [
+												"api",
+												"v2",
+												"hospital",
+												"login"
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": null,
+									"header": [
+										{
+											"key": "X-Powered-By",
+											"value": "Express"
+										},
+										{
+											"key": "Access-Control-Allow-Origin",
+											"value": "http://localhost:5000"
+										},
+										{
+											"key": "Vary",
+											"value": "Origin"
+										},
+										{
+											"key": "Access-Control-Allow-Credentials",
+											"value": "true"
+										},
+										{
+											"key": "Set-Cookie",
+											"value": "accessToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzBjNjUzOTQ3YTAzZDdjMzhmYjA5ZSIsInJvbGUiOiJob3NwaXRhbCIsImlhdCI6MTc2ODk5ODUwNiwiZXhwIjoxNzY4OTk5NDA2fQ.rIR4XZ1iqTsoiZ8x0yZRAS9WrBhQlipmAfZ0avSC0xE; Max-Age=900; Path=/; Expires=Wed, 21 Jan 2026 12:43:26 GMT; HttpOnly; SameSite=Strict"
+										},
+										{
+											"key": "Set-Cookie",
+											"value": "refreshToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzBjNjUzOTQ3YTAzZDdjMzhmYjA5ZSIsInJvbGUiOiJob3NwaXRhbCIsImlhdCI6MTc2ODk5ODUwNiwiZXhwIjoxNzY5NjAzMzA2fQ.0EpG7BPSxhjv0ZUQ9UKQfGBGowHdjWyE6rgbS3nOelg; Max-Age=604800; Path=/; Expires=Wed, 28 Jan 2026 12:28:26 GMT; HttpOnly; SameSite=Strict"
+										},
+										{
+											"key": "Content-Type",
+											"value": "application/json; charset=utf-8"
+										},
+										{
+											"key": "Content-Length",
+											"value": "1042"
+										},
+										{
+											"key": "ETag",
+											"value": "W/\"412-OENdSt2qrHOWJR4b1oOVCVUor1g\""
+										},
+										{
+											"key": "Date",
+											"value": "Wed, 21 Jan 2026 12:28:26 GMT"
+										},
+										{
+											"key": "Connection",
+											"value": "keep-alive"
+										},
+										{
+											"key": "Keep-Alive",
+											"value": "timeout=5"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"statusCode\": 200,\n    \"message\": \"Hospital logged in successfully\",\n    \"data\": {\n        \"hospital\": {\n            \"location\": {\n                \"type\": \"Point\",\n                \"coordinates\": [\n                    78.4867,\n                    17.385\n                ]\n            },\n            \"inventory\": {\n                \"beds\": {\n                    \"total\": 200,\n                    \"available\": 50\n                },\n                \"bloodStock\": {\n                    \"A_positive\": 10,\n                    \"A_negative\": 5,\n                    \"B_positive\": 8,\n                    \"B_negative\": 0,\n                    \"O_positive\": 15,\n                    \"O_negative\": 3,\n                    \"AB_positive\": 6,\n                    \"AB_negative\": 2\n                }\n            },\n            \"_id\": \"6970c653947a03d7c38fb09e\",\n            \"name\": \"Hyderabad General Hospital\",\n            \"email\": \"contact@hyderabadhospital.com\",\n            \"phone\": \"+1334567890\",\n            \"address\": \"123 Medical Center Drive, Healthcare City\",\n            \"createdAt\": \"2026-01-21T12:28:03.381Z\",\n            \"updatedAt\": \"2026-01-21T12:28:26.540Z\",\n            \"__v\": 0\n        },\n        \"accessToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzBjNjUzOTQ3YTAzZDdjMzhmYjA5ZSIsInJvbGUiOiJob3NwaXRhbCIsImlhdCI6MTc2ODk5ODUwNiwiZXhwIjoxNzY4OTk5NDA2fQ.rIR4XZ1iqTsoiZ8x0yZRAS9WrBhQlipmAfZ0avSC0xE\",\n        \"refreshToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzBjNjUzOTQ3YTAzZDdjMzhmYjA5ZSIsInJvbGUiOiJob3NwaXRhbCIsImlhdCI6MTc2ODk5ODUwNiwiZXhwIjoxNzY5NjAzMzA2fQ.0EpG7BPSxhjv0ZUQ9UKQfGBGowHdjWyE6rgbS3nOelg\"\n    },\n    \"status\": true\n}"
+								}
+							]
+						},
+						{
+							"name": "Hospital-Me",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseURL}}/api/v2/hospital/me",
+									"host": [
+										"{{baseURL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"hospital",
+										"me"
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "Hospital-Me",
+									"originalRequest": {
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{baseURL}}/api/v2/hospital/me",
+											"host": [
+												"{{baseURL}}"
+											],
+											"path": [
+												"api",
+												"v2",
+												"hospital",
+												"me"
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": null,
+									"header": [
+										{
+											"key": "X-Powered-By",
+											"value": "Express"
+										},
+										{
+											"key": "Access-Control-Allow-Origin",
+											"value": "http://localhost:5000"
+										},
+										{
+											"key": "Vary",
+											"value": "Origin"
+										},
+										{
+											"key": "Access-Control-Allow-Credentials",
+											"value": "true"
+										},
+										{
+											"key": "Content-Type",
+											"value": "application/json; charset=utf-8"
+										},
+										{
+											"key": "Content-Length",
+											"value": "610"
+										},
+										{
+											"key": "ETag",
+											"value": "W/\"262-FelUQ64RjBDlRoX8qMQQcoAIPgQ\""
+										},
+										{
+											"key": "Date",
+											"value": "Wed, 21 Jan 2026 12:28:35 GMT"
+										},
+										{
+											"key": "Connection",
+											"value": "keep-alive"
+										},
+										{
+											"key": "Keep-Alive",
+											"value": "timeout=5"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"statusCode\": 200,\n    \"message\": \"Hospital profile fetched successfully\",\n    \"data\": {\n        \"location\": {\n            \"type\": \"Point\",\n            \"coordinates\": [\n                78.4867,\n                17.385\n            ]\n        },\n        \"inventory\": {\n            \"beds\": {\n                \"total\": 200,\n                \"available\": 50\n            },\n            \"bloodStock\": {\n                \"A_positive\": 10,\n                \"A_negative\": 5,\n                \"B_positive\": 8,\n                \"B_negative\": 0,\n                \"O_positive\": 15,\n                \"O_negative\": 3,\n                \"AB_positive\": 6,\n                \"AB_negative\": 2\n            }\n        },\n        \"_id\": \"6970c653947a03d7c38fb09e\",\n        \"name\": \"Hyderabad General Hospital\",\n        \"email\": \"contact@hyderabadhospital.com\",\n        \"phone\": \"+1334567890\",\n        \"address\": \"123 Medical Center Drive, Healthcare City\",\n        \"createdAt\": \"2026-01-21T12:28:03.381Z\",\n        \"updatedAt\": \"2026-01-21T12:28:26.540Z\",\n        \"__v\": 0\n    },\n    \"status\": true\n}"
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "Services",
+					"item": [
+						{
+							"name": "Update-Inventory",
+							"request": {
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"beds\": {\n    \"available\": 45\n  },\n  \"bloodStock\": {\n    \"A_positive\": 12,\n    \"O_negative\": 5\n  }\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseURL}}/api/v2/hospital/inventory",
+									"host": [
+										"{{baseURL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"hospital",
+										"inventory"
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "Update-Inventory",
+									"originalRequest": {
+										"method": "PATCH",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"beds\": {\n    \"available\": 45\n  },\n  \"bloodStock\": {\n    \"A_positive\": 12,\n    \"O_negative\": 5\n  }\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{baseURL}}/api/v2/hospital/inventory",
+											"host": [
+												"{{baseURL}}"
+											],
+											"path": [
+												"api",
+												"v2",
+												"hospital",
+												"inventory"
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": null,
+									"header": [
+										{
+											"key": "X-Powered-By",
+											"value": "Express"
+										},
+										{
+											"key": "Access-Control-Allow-Origin",
+											"value": "http://localhost:5000"
+										},
+										{
+											"key": "Vary",
+											"value": "Origin"
+										},
+										{
+											"key": "Access-Control-Allow-Credentials",
+											"value": "true"
+										},
+										{
+											"key": "Content-Type",
+											"value": "application/json; charset=utf-8"
+										},
+										{
+											"key": "Content-Length",
+											"value": "612"
+										},
+										{
+											"key": "ETag",
+											"value": "W/\"264-xwZ2rKuDgMImMJ+/8GTcXUsujSo\""
+										},
+										{
+											"key": "Date",
+											"value": "Wed, 21 Jan 2026 12:29:00 GMT"
+										},
+										{
+											"key": "Connection",
+											"value": "keep-alive"
+										},
+										{
+											"key": "Keep-Alive",
+											"value": "timeout=5"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"statusCode\": 200,\n    \"message\": \"Hospital inventory updated successfully\",\n    \"data\": {\n        \"location\": {\n            \"type\": \"Point\",\n            \"coordinates\": [\n                78.4867,\n                17.385\n            ]\n        },\n        \"inventory\": {\n            \"beds\": {\n                \"total\": 200,\n                \"available\": 45\n            },\n            \"bloodStock\": {\n                \"A_positive\": 12,\n                \"A_negative\": 5,\n                \"B_positive\": 8,\n                \"B_negative\": 0,\n                \"O_positive\": 15,\n                \"O_negative\": 5,\n                \"AB_positive\": 6,\n                \"AB_negative\": 2\n            }\n        },\n        \"_id\": \"6970c653947a03d7c38fb09e\",\n        \"name\": \"Hyderabad General Hospital\",\n        \"email\": \"contact@hyderabadhospital.com\",\n        \"phone\": \"+1334567890\",\n        \"address\": \"123 Medical Center Drive, Healthcare City\",\n        \"createdAt\": \"2026-01-21T12:28:03.381Z\",\n        \"updatedAt\": \"2026-01-21T12:29:00.319Z\",\n        \"__v\": 0\n    },\n    \"status\": true\n}"
+								}
+							]
+						},
+						{
+							"name": "NearBy_Hospital",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"beds\": {\n    \"available\": 45\n  },\n  \"bloodStock\": {\n    \"A_positive\": 12,\n    \"O_negative\": 5\n  }\n}"
+								},
+								"url": {
+									"raw": "{{baseURL}}/api/v2/hospital/nearby?longitude=78.4867&latitude=17.385&bloodType=A+&requireBeds=true",
+									"host": [
+										"{{baseURL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"hospital",
+										"nearby"
+									],
+									"query": [
+										{
+											"key": "longitude",
+											"value": "78.4867"
+										},
+										{
+											"key": "latitude",
+											"value": "17.385"
+										},
+										{
+											"key": "bloodType",
+											"value": "A+"
+										},
+										{
+											"key": "requireBeds",
+											"value": "true"
+										}
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "NearBy_Hospital",
+									"originalRequest": {
+										"method": "GET",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"beds\": {\n    \"available\": 45\n  },\n  \"bloodStock\": {\n    \"A_positive\": 12,\n    \"O_negative\": 5\n  }\n}"
+										},
+										"url": {
+											"raw": "{{baseURL}}/api/v2/hospital/nearby?longitude=78.4867&latitude=17.385&bloodType=A+&requireBeds=true",
+											"host": [
+												"{{baseURL}}"
+											],
+											"path": [
+												"api",
+												"v2",
+												"hospital",
+												"nearby"
+											],
+											"query": [
+												{
+													"key": "longitude",
+													"value": "78.4867"
+												},
+												{
+													"key": "latitude",
+													"value": "17.385"
+												},
+												{
+													"key": "bloodType",
+													"value": "A+"
+												},
+												{
+													"key": "requireBeds",
+													"value": "true"
+												}
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": null,
+									"header": [
+										{
+											"key": "X-Powered-By",
+											"value": "Express"
+										},
+										{
+											"key": "Access-Control-Allow-Origin",
+											"value": "http://localhost:5000"
+										},
+										{
+											"key": "Vary",
+											"value": "Origin"
+										},
+										{
+											"key": "Access-Control-Allow-Credentials",
+											"value": "true"
+										},
+										{
+											"key": "Content-Type",
+											"value": "application/json; charset=utf-8"
+										},
+										{
+											"key": "Content-Length",
+											"value": "1276"
+										},
+										{
+											"key": "ETag",
+											"value": "W/\"4fc-VPWB6sylhGXZXRPnYuhv2qevuAc\""
+										},
+										{
+											"key": "Date",
+											"value": "Wed, 21 Jan 2026 12:29:18 GMT"
+										},
+										{
+											"key": "Connection",
+											"value": "keep-alive"
+										},
+										{
+											"key": "Keep-Alive",
+											"value": "timeout=5"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"statusCode\": 200,\n    \"message\": \"Found 2 nearby hospital(s)\",\n    \"data\": {\n        \"count\": 2,\n        \"hospitals\": [\n            {\n                \"hospitalId\": \"694d1fc56aa5a51171e6cffc\",\n                \"distance\": 0,\n                \"hospitalData\": {\n                    \"location\": {\n                        \"type\": \"Point\",\n                        \"coordinates\": [\n                            78.4867,\n                            17.385\n                        ]\n                    },\n                    \"inventory\": {\n                        \"beds\": {\n                            \"total\": 200,\n                            \"available\": 45\n                        },\n                        \"bloodStock\": {\n                            \"A_positive\": 12,\n                            \"A_negative\": 5,\n                            \"B_positive\": 8,\n                            \"B_negative\": 0,\n                            \"O_positive\": 15,\n                            \"O_negative\": 5,\n                            \"AB_positive\": 6,\n                            \"AB_negative\": 2\n                        }\n                    },\n                    \"_id\": \"694d1fc56aa5a51171e6cffc\",\n                    \"name\": \"City General Hospital\",\n                    \"email\": \"contact@cityhospital.com\",\n                    \"phone\": \"+1234567890\",\n                    \"address\": \"123 Medical Center Drive, Healthcare City\",\n                    \"createdAt\": \"2025-12-25T11:28:05.618Z\",\n                    \"updatedAt\": \"2026-01-15T08:48:05.600Z\",\n                    \"__v\": 0\n                }\n            },\n            {\n                \"hospitalId\": \"6970c653947a03d7c38fb09e\",\n                \"distance\": 0,\n                \"hospitalData\": {\n                    \"location\": {\n                        \"type\": \"Point\",\n                        \"coordinates\": [\n                            78.4867,\n                            17.385\n                        ]\n                    },\n                    \"inventory\": {\n                        \"beds\": {\n                            \"total\": 200,\n                            \"available\": 45\n                        },\n                        \"bloodStock\": {\n                            \"A_positive\": 12,\n                            \"A_negative\": 5,\n                            \"B_positive\": 8,\n                            \"B_negative\": 0,\n                            \"O_positive\": 15,\n                            \"O_negative\": 5,\n                            \"AB_positive\": 6,\n                            \"AB_negative\": 2\n                        }\n                    },\n                    \"_id\": \"6970c653947a03d7c38fb09e\",\n                    \"name\": \"Hyderabad General Hospital\",\n                    \"email\": \"contact@hyderabadhospital.com\",\n                    \"phone\": \"+1334567890\",\n                    \"address\": \"123 Medical Center Drive, Healthcare City\",\n                    \"createdAt\": \"2026-01-21T12:28:03.381Z\",\n                    \"updatedAt\": \"2026-01-21T12:29:00.319Z\",\n                    \"__v\": 0\n                }\n            }\n        ]\n    },\n    \"status\": true\n}"
+								}
+							]
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Trip",
+			"item": [
+				{
+					"name": "CreateTrip",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"pickupAddress\": \"123 Main Street, Hyderabad\",\n  \"pickupCoordinates\": [78.4867, 17.3850],\n  \"destinationHospitalId\": \"optional-hospital-id\",\n  \"bloodType\": \"A+\",\n  \"requireBeds\": true\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/api/v2/trip/request",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"api",
+								"v2",
+								"trip",
+								"request"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "CreateTrip",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"pickupAddress\": \"123 Main Street, Hyderabad\",\n  \"pickupCoordinates\": [78.4867, 17.3850],\n  \"destinationHospitalId\": \"optional-hospital-id\",\n  \"bloodType\": \"A+\",\n  \"requireBeds\": true\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseURL}}/api/v2/trip/request",
+									"host": [
+										"{{baseURL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"trip",
+										"request"
+									]
+								}
+							},
+							"status": "Created",
+							"code": 201,
+							"_postman_previewlanguage": null,
+							"header": [
+								{
+									"key": "X-Powered-By",
+									"value": "Express"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "http://localhost:5000"
+								},
+								{
+									"key": "Vary",
+									"value": "Origin"
+								},
+								{
+									"key": "Access-Control-Allow-Credentials",
+									"value": "true"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "871"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"367-JG8AqYnvBU/Q9GULdpphtAaP6fU\""
+								},
+								{
+									"key": "Date",
+									"value": "Wed, 21 Jan 2026 12:31:07 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"statusCode\": 201,\n    \"message\": \"Ambulance request created successfully. Searching for available ambulances...\",\n    \"data\": {\n        \"userId\": \"6970c33999fbef280698ac47\",\n        \"ambulanceId\": null,\n        \"destinationHospitalId\": \"694d1fc56aa5a51171e6cffc\",\n        \"status\": \"SEARCHING\",\n        \"pickup\": {\n            \"address\": \"123 Main Street, Hyderabad\",\n            \"coordinates\": [\n                78.4867,\n                17.385\n            ]\n        },\n        \"dropoff\": {\n            \"address\": \"123 Medical Center Drive, Healthcare City\",\n            \"coordinates\": [\n                78.4867,\n                17.385\n            ]\n        },\n        \"patientSnapshot\": {\n            \"userId\": \"6970c33999fbef280698ac47\",\n            \"name\": \"sai krishna\",\n            \"phone\": \"9876543210\",\n            \"medicalHistory\": \"\",\n            \"bloodGroup\": \"A+\"\n        },\n        \"timeline\": [\n            {\n                \"status\": \"SEARCHING\",\n                \"timestamp\": \"2026-01-21T12:31:07.732Z\",\n                \"location\": [\n                    78.4867,\n                    17.385\n                ],\n                \"updatedBy\": \"user:6970c33999fbef280698ac47\",\n                \"_id\": \"6970c70b947a03d7c38fb0b4\"\n            }\n        ],\n        \"_id\": \"6970c70b947a03d7c38fb0b3\",\n        \"createdAt\": \"2026-01-21T12:31:07.734Z\",\n        \"updatedAt\": \"2026-01-21T12:31:07.734Z\",\n        \"__v\": 0\n    },\n    \"status\": true\n}"
+						}
+					]
+				},
+				{
+					"name": "Get-Active_Trip",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"pickupAddress\": \"123 Main Street, Hyderabad\",\n  \"pickupCoordinates\": [78.4867, 17.3850],\n  \"destinationHospitalId\": \"optional-hospital-id\",\n  \"bloodType\": \"A+\",\n  \"requireBeds\": true\n}"
+						},
+						"url": {
+							"raw": "{{baseURL}}/api/v2/trip/active",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"api",
+								"v2",
+								"trip",
+								"active"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Get-Active_Trip",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"pickupAddress\": \"123 Main Street, Hyderabad\",\n  \"pickupCoordinates\": [78.4867, 17.3850],\n  \"destinationHospitalId\": \"optional-hospital-id\",\n  \"bloodType\": \"A+\",\n  \"requireBeds\": true\n}"
+								},
+								"url": {
+									"raw": "{{baseURL}}/api/v2/trip/active",
+									"host": [
+										"{{baseURL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"trip",
+										"active"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": null,
+							"header": [
+								{
+									"key": "X-Powered-By",
+									"value": "Express"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "http://localhost:5000"
+								},
+								{
+									"key": "Vary",
+									"value": "Origin"
+								},
+								{
+									"key": "Access-Control-Allow-Credentials",
+									"value": "true"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "1312"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"520-y5qh03JbPbMdsZfGN0bNQwUN+KU\""
+								},
+								{
+									"key": "Date",
+									"value": "Wed, 21 Jan 2026 12:31:22 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"statusCode\": 200,\n    \"message\": \"Active trip retrieved successfully\",\n    \"data\": {\n        \"_id\": \"6970c70b947a03d7c38fb0b3\",\n        \"userId\": \"6970c33999fbef280698ac47\",\n        \"ambulanceId\": null,\n        \"destinationHospitalId\": {\n            \"_id\": \"694d1fc56aa5a51171e6cffc\",\n            \"name\": \"City General Hospital\",\n            \"email\": \"contact@cityhospital.com\",\n            \"phone\": \"+1234567890\",\n            \"address\": \"123 Medical Center Drive, Healthcare City\",\n            \"location\": {\n                \"type\": \"Point\",\n                \"coordinates\": [\n                    78.4867,\n                    17.385\n                ]\n            },\n            \"inventory\": {\n                \"beds\": {\n                    \"total\": 200,\n                    \"available\": 45\n                },\n                \"bloodStock\": {\n                    \"A_positive\": 12,\n                    \"A_negative\": 5,\n                    \"B_positive\": 8,\n                    \"B_negative\": 0,\n                    \"O_positive\": 15,\n                    \"O_negative\": 5,\n                    \"AB_positive\": 6,\n                    \"AB_negative\": 2\n                }\n            },\n            \"createdAt\": \"2025-12-25T11:28:05.618Z\",\n            \"updatedAt\": \"2026-01-15T08:48:05.600Z\",\n            \"__v\": 0\n        },\n        \"status\": \"SEARCHING\",\n        \"pickup\": {\n            \"address\": \"123 Main Street, Hyderabad\",\n            \"coordinates\": [\n                78.4867,\n                17.385\n            ]\n        },\n        \"dropoff\": {\n            \"address\": \"123 Medical Center Drive, Healthcare City\",\n            \"coordinates\": [\n                78.4867,\n                17.385\n            ]\n        },\n        \"patientSnapshot\": {\n            \"userId\": \"6970c33999fbef280698ac47\",\n            \"name\": \"sai krishna\",\n            \"phone\": \"9876543210\",\n            \"medicalHistory\": \"\",\n            \"bloodGroup\": \"A+\"\n        },\n        \"timeline\": [\n            {\n                \"status\": \"SEARCHING\",\n                \"timestamp\": \"2026-01-21T12:31:07.732Z\",\n                \"location\": [\n                    78.4867,\n                    17.385\n                ],\n                \"updatedBy\": \"user:6970c33999fbef280698ac47\",\n                \"_id\": \"6970c70b947a03d7c38fb0b4\"\n            }\n        ],\n        \"createdAt\": \"2026-01-21T12:31:07.734Z\",\n        \"updatedAt\": \"2026-01-21T12:31:07.734Z\",\n        \"__v\": 0\n    },\n    \"status\": true\n}"
+						}
+					]
+				},
+				{
+					"name": "Trip-History",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/api/v2/trip/history?limit=10",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"api",
+								"v2",
+								"trip",
+								"history"
+							],
+							"query": [
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Trip-History",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseURL}}/api/v2/trip/history?limit=10",
+									"host": [
+										"{{baseURL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"trip",
+										"history"
+									],
+									"query": [
+										{
+											"key": "limit",
+											"value": "10"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": null,
+							"header": [
+								{
+									"key": "X-Powered-By",
+									"value": "Express"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "http://localhost:5000"
+								},
+								{
+									"key": "Vary",
+									"value": "Origin"
+								},
+								{
+									"key": "Access-Control-Allow-Credentials",
+									"value": "true"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "944"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"3b0-/ZQsWZogXIZNFeclvxtsi9NcP2o\""
+								},
+								{
+									"key": "Date",
+									"value": "Wed, 21 Jan 2026 12:31:36 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"statusCode\": 200,\n    \"message\": \"Trip history retrieved successfully\",\n    \"data\": {\n        \"count\": 1,\n        \"trips\": [\n            {\n                \"pickup\": {\n                    \"address\": \"123 Main Street, Hyderabad\",\n                    \"coordinates\": [\n                        78.4867,\n                        17.385\n                    ]\n                },\n                \"dropoff\": {\n                    \"address\": \"123 Medical Center Drive, Healthcare City\",\n                    \"coordinates\": [\n                        78.4867,\n                        17.385\n                    ]\n                },\n                \"patientSnapshot\": {\n                    \"userId\": \"6970c33999fbef280698ac47\",\n                    \"name\": \"sai krishna\",\n                    \"phone\": \"9876543210\",\n                    \"medicalHistory\": \"\",\n                    \"bloodGroup\": \"A+\"\n                },\n                \"_id\": \"6970c70b947a03d7c38fb0b3\",\n                \"userId\": \"6970c33999fbef280698ac47\",\n                \"ambulanceId\": null,\n                \"destinationHospitalId\": {\n                    \"_id\": \"694d1fc56aa5a51171e6cffc\",\n                    \"name\": \"City General Hospital\",\n                    \"address\": \"123 Medical Center Drive, Healthcare City\"\n                },\n                \"status\": \"SEARCHING\",\n                \"timeline\": [\n                    {\n                        \"status\": \"SEARCHING\",\n                        \"timestamp\": \"2026-01-21T12:31:07.732Z\",\n                        \"location\": [\n                            78.4867,\n                            17.385\n                        ],\n                        \"updatedBy\": \"user:6970c33999fbef280698ac47\",\n                        \"_id\": \"6970c70b947a03d7c38fb0b4\"\n                    }\n                ],\n                \"createdAt\": \"2026-01-21T12:31:07.734Z\",\n                \"updatedAt\": \"2026-01-21T12:31:07.734Z\",\n                \"__v\": 0\n            }\n        ]\n    },\n    \"status\": true\n}"
+						}
+					]
+				},
+				{
+					"name": "Ambulance-accept",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/api/v2/trip/:tripId/accept",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"api",
+								"v2",
+								"trip",
+								":tripId",
+								"accept"
+							],
+							"variable": [
+								{
+									"key": "tripId",
+									"value": "695010405bf0d5d8564d9bea"
+								}
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Ambulance-accept",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{baseURL}}/api/v2/trip/:tripId/accept",
+									"host": [
+										"{{baseURL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"trip",
+										":tripId",
+										"accept"
+									],
+									"variable": [
+										{
+											"key": "tripId",
+											"value": "6970c70b947a03d7c38fb0b3"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": null,
+							"header": [
+								{
+									"key": "X-Powered-By",
+									"value": "Express"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "http://localhost:5000"
+								},
+								{
+									"key": "Vary",
+									"value": "Origin"
+								},
+								{
+									"key": "Access-Control-Allow-Credentials",
+									"value": "true"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "1053"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"41d-KPsunJdo0r/TzngvgxdLmr8UQWI\""
+								},
+								{
+									"key": "Date",
+									"value": "Wed, 21 Jan 2026 12:32:26 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"statusCode\": 200,\n    \"message\": \"Trip accepted successfully\",\n    \"data\": {\n        \"pickup\": {\n            \"address\": \"123 Main Street, Hyderabad\",\n            \"coordinates\": [\n                78.4867,\n                17.385\n            ]\n        },\n        \"dropoff\": {\n            \"address\": \"123 Medical Center Drive, Healthcare City\",\n            \"coordinates\": [\n                78.4867,\n                17.385\n            ]\n        },\n        \"patientSnapshot\": {\n            \"userId\": \"6970c33999fbef280698ac47\",\n            \"name\": \"sai krishna\",\n            \"phone\": \"9876543210\",\n            \"medicalHistory\": \"\",\n            \"bloodGroup\": \"A+\"\n        },\n        \"_id\": \"6970c70b947a03d7c38fb0b3\",\n        \"userId\": \"6970c33999fbef280698ac47\",\n        \"ambulanceId\": \"6970c41399fbef280698ac59\",\n        \"destinationHospitalId\": \"694d1fc56aa5a51171e6cffc\",\n        \"status\": \"ACCEPTED\",\n        \"timeline\": [\n            {\n                \"status\": \"SEARCHING\",\n                \"timestamp\": \"2026-01-21T12:31:07.732Z\",\n                \"location\": [\n                    78.4867,\n                    17.385\n                ],\n                \"updatedBy\": \"user:6970c33999fbef280698ac47\",\n                \"_id\": \"6970c70b947a03d7c38fb0b4\"\n            },\n            {\n                \"status\": \"ACCEPTED\",\n                \"timestamp\": \"2026-01-21T12:32:26.893Z\",\n                \"location\": [\n                    78.48227,\n                    17.383\n                ],\n                \"updatedBy\": \"ambulance:6970c41399fbef280698ac59\",\n                \"_id\": \"6970c75a947a03d7c38fb0c6\"\n            }\n        ],\n        \"createdAt\": \"2026-01-21T12:31:07.734Z\",\n        \"updatedAt\": \"2026-01-21T12:32:26.894Z\",\n        \"__v\": 1,\n        \"acceptedAt\": \"2026-01-21T12:32:26.893Z\"\n    },\n    \"status\": true\n}"
+						}
+					]
+				},
+				{
+					"name": "Update-Trip-status",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"status\": \"ARRIVED_PICKUP\",\n  \"location\": [78.4900, 17.3900]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/api/v2/trip/:tripId/status",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"api",
+								"v2",
+								"trip",
+								":tripId",
+								"status"
+							],
+							"variable": [
+								{
+									"key": "tripId",
+									"value": "695010405bf0d5d8564d9bea"
+								}
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Update-Trip-status",
+							"originalRequest": {
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"status\": \"ARRIVED_PICKUP\",\n  \"location\": [78.4900, 17.3900]\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseURL}}/api/v2/trip/:tripId/status",
+									"host": [
+										"{{baseURL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"trip",
+										":tripId",
+										"status"
+									],
+									"variable": [
+										{
+											"key": "tripId",
+											"value": "6970c70b947a03d7c38fb0b3"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": null,
+							"header": [
+								{
+									"key": "X-Powered-By",
+									"value": "Express"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "http://localhost:5000"
+								},
+								{
+									"key": "Vary",
+									"value": "Origin"
+								},
+								{
+									"key": "Access-Control-Allow-Credentials",
+									"value": "true"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "1284"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"504-VEE7RSBNWFR9hhjIUV41T7h+/ao\""
+								},
+								{
+									"key": "Date",
+									"value": "Wed, 21 Jan 2026 12:33:01 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"statusCode\": 200,\n    \"message\": \"Trip status updated successfully\",\n    \"data\": {\n        \"pickup\": {\n            \"address\": \"123 Main Street, Hyderabad\",\n            \"coordinates\": [\n                78.4867,\n                17.385\n            ]\n        },\n        \"dropoff\": {\n            \"address\": \"123 Medical Center Drive, Healthcare City\",\n            \"coordinates\": [\n                78.4867,\n                17.385\n            ]\n        },\n        \"patientSnapshot\": {\n            \"userId\": \"6970c33999fbef280698ac47\",\n            \"name\": \"sai krishna\",\n            \"phone\": \"9876543210\",\n            \"medicalHistory\": \"\",\n            \"bloodGroup\": \"A+\"\n        },\n        \"_id\": \"6970c70b947a03d7c38fb0b3\",\n        \"userId\": \"6970c33999fbef280698ac47\",\n        \"ambulanceId\": \"6970c41399fbef280698ac59\",\n        \"destinationHospitalId\": \"694d1fc56aa5a51171e6cffc\",\n        \"status\": \"ARRIVED_PICKUP\",\n        \"timeline\": [\n            {\n                \"status\": \"SEARCHING\",\n                \"timestamp\": \"2026-01-21T12:31:07.732Z\",\n                \"location\": [\n                    78.4867,\n                    17.385\n                ],\n                \"updatedBy\": \"user:6970c33999fbef280698ac47\",\n                \"_id\": \"6970c70b947a03d7c38fb0b4\"\n            },\n            {\n                \"status\": \"ACCEPTED\",\n                \"timestamp\": \"2026-01-21T12:32:26.893Z\",\n                \"location\": [\n                    78.48227,\n                    17.383\n                ],\n                \"updatedBy\": \"ambulance:6970c41399fbef280698ac59\",\n                \"_id\": \"6970c75a947a03d7c38fb0c6\"\n            },\n            {\n                \"status\": \"ARRIVED_PICKUP\",\n                \"timestamp\": \"2026-01-21T12:33:01.422Z\",\n                \"location\": [\n                    78.49,\n                    17.39\n                ],\n                \"updatedBy\": \"ambulance:6970c41399fbef280698ac59\",\n                \"_id\": \"6970c77d947a03d7c38fb0ce\"\n            }\n        ],\n        \"createdAt\": \"2026-01-21T12:31:07.734Z\",\n        \"updatedAt\": \"2026-01-21T12:33:01.423Z\",\n        \"__v\": 2,\n        \"acceptedAt\": \"2026-01-21T12:32:26.893Z\",\n        \"arrivedAtPickup\": \"2026-01-21T12:33:01.422Z\"\n    },\n    \"status\": true\n}"
+						}
+					]
+				},
+				{
+					"name": "get-trip",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"status\": \"ARRIVED_PICKUP\",\n  \"location\": [78.4900, 17.3900]\n}"
+						},
+						"url": {
+							"raw": "{{baseURL}}/api/v2/trip/:tripId",
+							"host": [
+								"{{baseURL}} "
+							],
+							"path": [
+								"api",
+								"v2",
+								"trip",
+								":tripId"
+							],
+							"variable": [
+								{
+									"key": "tripId",
+									"value": "695010405bf0d5d8564d9bea"
+								}
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "gettrip",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseURL}}/api/v2/trip/:tripId",
+									"host": [
+										"{{baseURL}} "
+									],
+									"path": [
+										"api",
+										"v2",
+										"trip",
+										":tripId"
+									],
+									"variable": [
+										{
+											"key": "tripId",
+											"value": "6970c70b947a03d7c38fb0b3"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": null,
+							"header": [
+								{
+									"key": "X-Powered-By",
+									"value": "Express"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "http://localhost:5000"
+								},
+								{
+									"key": "Vary",
+									"value": "Origin"
+								},
+								{
+									"key": "Access-Control-Allow-Credentials",
+									"value": "true"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "2281"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"8e9-7QIlpPGM1i4P33D6cPmGlZsDu6E\""
+								},
+								{
+									"key": "Date",
+									"value": "Wed, 21 Jan 2026 12:33:23 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"statusCode\": 200,\n    \"message\": \"Trip details retrieved successfully\",\n    \"data\": {\n        \"_id\": \"6970c70b947a03d7c38fb0b3\",\n        \"userId\": {\n            \"_id\": \"6970c33999fbef280698ac47\",\n            \"name\": \"sai krishna\",\n            \"email\": \"sai@test.com\",\n            \"phone\": \"9876543210\",\n            \"bloodGroup\": \"A+\",\n            \"medicalHistory\": null,\n            \"location\": {\n                \"type\": \"Point\",\n                \"coordinates\": [\n                    78.4867,\n                    17.385\n                ]\n            },\n            \"createdAt\": \"2026-01-21T12:14:49.980Z\",\n            \"updatedAt\": \"2026-01-21T12:30:26.212Z\",\n            \"__v\": 0\n        },\n        \"ambulanceId\": {\n            \"_id\": \"6970c41399fbef280698ac59\",\n            \"driverName\": \"sai Kumar\",\n            \"driverPhone\": \"8876543210\",\n            \"vehicleNumber\": \"TS09AB1235\",\n            \"status\": \"ready\",\n            \"location\": {\n                \"type\": \"Point\",\n                \"coordinates\": [\n                    78.48227,\n                    17.383\n                ]\n            },\n            \"createdAt\": \"2026-01-21T12:18:27.392Z\",\n            \"updatedAt\": \"2026-01-21T12:32:18.299Z\",\n            \"__v\": 0\n        },\n        \"destinationHospitalId\": {\n            \"_id\": \"694d1fc56aa5a51171e6cffc\",\n            \"name\": \"City General Hospital\",\n            \"email\": \"contact@cityhospital.com\",\n            \"phone\": \"+1234567890\",\n            \"address\": \"123 Medical Center Drive, Healthcare City\",\n            \"location\": {\n                \"type\": \"Point\",\n                \"coordinates\": [\n                    78.4867,\n                    17.385\n                ]\n            },\n            \"inventory\": {\n                \"beds\": {\n                    \"total\": 200,\n                    \"available\": 45\n                },\n                \"bloodStock\": {\n                    \"A_positive\": 12,\n                    \"A_negative\": 5,\n                    \"B_positive\": 8,\n                    \"B_negative\": 0,\n                    \"O_positive\": 15,\n                    \"O_negative\": 5,\n                    \"AB_positive\": 6,\n                    \"AB_negative\": 2\n                }\n            },\n            \"createdAt\": \"2025-12-25T11:28:05.618Z\",\n            \"updatedAt\": \"2026-01-15T08:48:05.600Z\",\n            \"__v\": 0\n        },\n        \"status\": \"ARRIVED_PICKUP\",\n        \"pickup\": {\n            \"address\": \"123 Main Street, Hyderabad\",\n            \"coordinates\": [\n                78.4867,\n                17.385\n            ]\n        },\n        \"dropoff\": {\n            \"address\": \"123 Medical Center Drive, Healthcare City\",\n            \"coordinates\": [\n                78.4867,\n                17.385\n            ]\n        },\n        \"patientSnapshot\": {\n            \"userId\": \"6970c33999fbef280698ac47\",\n            \"name\": \"sai krishna\",\n            \"phone\": \"9876543210\",\n            \"medicalHistory\": \"\",\n            \"bloodGroup\": \"A+\"\n        },\n        \"timeline\": [\n            {\n                \"status\": \"SEARCHING\",\n                \"timestamp\": \"2026-01-21T12:31:07.732Z\",\n                \"location\": [\n                    78.4867,\n                    17.385\n                ],\n                \"updatedBy\": \"user:6970c33999fbef280698ac47\",\n                \"_id\": \"6970c70b947a03d7c38fb0b4\"\n            },\n            {\n                \"status\": \"ACCEPTED\",\n                \"timestamp\": \"2026-01-21T12:32:26.893Z\",\n                \"location\": [\n                    78.48227,\n                    17.383\n                ],\n                \"updatedBy\": \"ambulance:6970c41399fbef280698ac59\",\n                \"_id\": \"6970c75a947a03d7c38fb0c6\"\n            },\n            {\n                \"status\": \"ARRIVED_PICKUP\",\n                \"timestamp\": \"2026-01-21T12:33:01.422Z\",\n                \"location\": [\n                    78.49,\n                    17.39\n                ],\n                \"updatedBy\": \"ambulance:6970c41399fbef280698ac59\",\n                \"_id\": \"6970c77d947a03d7c38fb0ce\"\n            }\n        ],\n        \"createdAt\": \"2026-01-21T12:31:07.734Z\",\n        \"updatedAt\": \"2026-01-21T12:33:01.423Z\",\n        \"__v\": 2,\n        \"acceptedAt\": \"2026-01-21T12:32:26.893Z\",\n        \"arrivedAtPickup\": \"2026-01-21T12:33:01.422Z\"\n    },\n    \"status\": true\n}"
+						}
+					]
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "baseURL",
+			"value": "",
+			"type": "default"
+		}
+	]
+}

@@ -1,0 +1,2738 @@
+openapi: 3.0.0
+info:
+  title: MedSwift
+  description: >-
+    ### Welcome to Postman! This is your first collection. 
+
+
+    Collections are your starting point for building and testing APIs. You can
+    use this one to:
+
+
+    • Group related requests
+
+    • Test your API in real-world scenarios
+
+    • Document and share your requests
+
+
+    Update the name and overview whenever you’re ready to make it yours.
+
+
+    [Learn more about Postman
+    Collections.](https://learning.postman.com/docs/collections/collections-overview/)
+  version: 1.0.0
+servers:
+  - url: http://{{baseurl}}
+tags:
+  - name: User
+  - name: User > Auth
+  - name: Ambulance
+  - name: Ambulance > Auth
+  - name: Ambulance > Services
+  - name: Admin
+  - name: hospital
+  - name: hospital > Auth
+  - name: hospital > Services
+  - name: Trip
+paths:
+  /api/v2/user/register:
+    post:
+      tags:
+        - User > Auth
+      summary: User-Register
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                name: Raja Shekar
+                email: raja2@test.com
+                phone: '9876543211'
+                password: password123
+                bloodGroup: A+
+                location:
+                  type: Point
+                  coordinates:
+                    - 78.4867
+                    - 17.385
+      responses:
+        '201':
+          description: Created
+          headers:
+            X-Powered-By:
+              schema:
+                type: string
+                example: Express
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+                example: http://localhost:5000
+            Vary:
+              schema:
+                type: string
+                example: Origin
+            Access-Control-Allow-Credentials:
+              schema:
+                type: boolean
+                example: 'true'
+            Set-Cookie:
+              schema:
+                type: string
+                example: >-
+                  refreshToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzBjMzM5OTlmYmVmMjgwNjk4YWM0NyIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzY4OTk3NjkwLCJleHAiOjE3Njk2MDI0OTB9.o5SqCBTDwt3zVizV-7HKDNo3fyuvDXcaNuu5hBpcUZA;
+                  Max-Age=604800; Path=/; Expires=Wed, 28 Jan 2026 12:14:50 GMT;
+                  HttpOnly; SameSite=Strict
+            Content-Type:
+              schema:
+                type: string
+                example: application/json; charset=utf-8
+            Content-Length:
+              schema:
+                type: integer
+                example: '787'
+            ETag:
+              schema:
+                type: string
+                example: W/"313-dTta/g/u3xU2Ys5fWEA/RAeMKGM"
+            Date:
+              schema:
+                type: string
+                example: Wed, 21 Jan 2026 12:14:50 GMT
+            Connection:
+              schema:
+                type: string
+                example: keep-alive
+            Keep-Alive:
+              schema:
+                type: string
+                example: timeout=5
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: |-
+                {
+                    "statusCode": 201,
+                    "message": "User registered successfully",
+                    "data": {
+                        "user": {
+                            "location": {
+                                "type": "Point",
+                                "coordinates": [
+                                    78.4867,
+                                    17.385
+                                ]
+                            },
+                            "_id": "6970c33999fbef280698ac47",
+                            "name": "sai krishna",
+                            "email": "sai@test.com",
+                            "phone": "9876543210",
+                            "bloodGroup": "A+",
+                            "medicalHistory": null,
+                            "createdAt": "2026-01-21T12:14:49.980Z",
+                            "updatedAt": "2026-01-21T12:14:49.980Z",
+                            "__v": 0
+                        },
+                        "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzBjMzM5OTlmYmVmMjgwNjk4YWM0NyIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzY4OTk3NjkwLCJleHAiOjE3Njg5OTg1OTB9.pREPTp8WaWz7gVPotJTHMO81_dl9Q1sQ1dQhjoiQy0w",
+                        "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzBjMzM5OTlmYmVmMjgwNjk4YWM0NyIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzY4OTk3NjkwLCJleHAiOjE3Njk2MDI0OTB9.o5SqCBTDwt3zVizV-7HKDNo3fyuvDXcaNuu5hBpcUZA"
+                    },
+                    "status": true
+                }
+  /api/v2/user/login:
+    post:
+      tags:
+        - User > Auth
+      summary: User-Login
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                phone: '9876543210'
+                password: password123
+      responses:
+        '200':
+          description: OK
+          headers:
+            X-Powered-By:
+              schema:
+                type: string
+                example: Express
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+                example: http://localhost:5000
+            Vary:
+              schema:
+                type: string
+                example: Origin
+            Access-Control-Allow-Credentials:
+              schema:
+                type: boolean
+                example: 'true'
+            Set-Cookie:
+              schema:
+                type: string
+                example: >-
+                  refreshToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzBjMzM5OTlmYmVmMjgwNjk4YWM0NyIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzY4OTk3NzMzLCJleHAiOjE3Njk2MDI1MzN9.gdi2CdocTNCM6wc_lDsSk8J3uaC_xNMCD7Y_AwLNZKQ;
+                  Max-Age=604800; Path=/; Expires=Wed, 28 Jan 2026 12:15:33 GMT;
+                  HttpOnly; SameSite=Strict
+            Content-Type:
+              schema:
+                type: string
+                example: application/json; charset=utf-8
+            Content-Length:
+              schema:
+                type: integer
+                example: '786'
+            ETag:
+              schema:
+                type: string
+                example: W/"312-oSxWQZH+PXixcPEeGsZOU6OOABU"
+            Date:
+              schema:
+                type: string
+                example: Wed, 21 Jan 2026 12:15:33 GMT
+            Connection:
+              schema:
+                type: string
+                example: keep-alive
+            Keep-Alive:
+              schema:
+                type: string
+                example: timeout=5
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: |-
+                {
+                    "statusCode": 200,
+                    "message": "User logged in successfully",
+                    "data": {
+                        "user": {
+                            "location": {
+                                "type": "Point",
+                                "coordinates": [
+                                    78.4867,
+                                    17.385
+                                ]
+                            },
+                            "_id": "6970c33999fbef280698ac47",
+                            "name": "sai krishna",
+                            "email": "sai@test.com",
+                            "phone": "9876543210",
+                            "bloodGroup": "A+",
+                            "medicalHistory": null,
+                            "createdAt": "2026-01-21T12:14:49.980Z",
+                            "updatedAt": "2026-01-21T12:15:33.411Z",
+                            "__v": 0
+                        },
+                        "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzBjMzM5OTlmYmVmMjgwNjk4YWM0NyIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzY4OTk3NzMzLCJleHAiOjE3Njg5OTg2MzN9.wMDV7c6lFmNvZ0ugBr6G_H4tVStufdT-SOFnAiIrOPs",
+                        "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzBjMzM5OTlmYmVmMjgwNjk4YWM0NyIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzY4OTk3NzMzLCJleHAiOjE3Njk2MDI1MzN9.gdi2CdocTNCM6wc_lDsSk8J3uaC_xNMCD7Y_AwLNZKQ"
+                    },
+                    "status": true
+                }
+  /api/v2/user/logout:
+    post:
+      tags:
+        - User > Auth
+      summary: User-Logout
+      requestBody:
+        content: {}
+      responses:
+        '200':
+          description: OK
+          headers:
+            X-Powered-By:
+              schema:
+                type: string
+                example: Express
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+                example: http://localhost:5000
+            Vary:
+              schema:
+                type: string
+                example: Origin
+            Access-Control-Allow-Credentials:
+              schema:
+                type: boolean
+                example: 'true'
+            Set-Cookie:
+              schema:
+                type: string
+                example: >-
+                  refreshToken=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT;
+                  HttpOnly; SameSite=Strict
+            Content-Type:
+              schema:
+                type: string
+                example: application/json; charset=utf-8
+            Content-Length:
+              schema:
+                type: integer
+                example: '83'
+            ETag:
+              schema:
+                type: string
+                example: W/"53-UGx0LedktLuVqwV9MmX5bqkKpbI"
+            Date:
+              schema:
+                type: string
+                example: Wed, 21 Jan 2026 12:16:54 GMT
+            Connection:
+              schema:
+                type: string
+                example: keep-alive
+            Keep-Alive:
+              schema:
+                type: string
+                example: timeout=5
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: |-
+                {
+                    "statusCode": 200,
+                    "message": "User logged out successfully",
+                    "data": {},
+                    "status": true
+                }
+  /api/v2/user/me:
+    get:
+      tags:
+        - User > Auth
+      summary: User-Me
+      responses:
+        '200':
+          description: OK
+          headers:
+            X-Powered-By:
+              schema:
+                type: string
+                example: Express
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+                example: http://localhost:5000
+            Vary:
+              schema:
+                type: string
+                example: Origin
+            Access-Control-Allow-Credentials:
+              schema:
+                type: boolean
+                example: 'true'
+            Content-Type:
+              schema:
+                type: string
+                example: application/json; charset=utf-8
+            Content-Length:
+              schema:
+                type: integer
+                example: '370'
+            ETag:
+              schema:
+                type: string
+                example: W/"172-sMl/3sHfNcXu6r6mPoOmup68gfk"
+            Date:
+              schema:
+                type: string
+                example: Wed, 21 Jan 2026 12:17:10 GMT
+            Connection:
+              schema:
+                type: string
+                example: keep-alive
+            Keep-Alive:
+              schema:
+                type: string
+                example: timeout=5
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: |-
+                {
+                    "statusCode": 200,
+                    "message": "User profile fetched successfully",
+                    "data": {
+                        "location": {
+                            "type": "Point",
+                            "coordinates": [
+                                78.4867,
+                                17.385
+                            ]
+                        },
+                        "_id": "6970c33999fbef280698ac47",
+                        "name": "sai krishna",
+                        "email": "sai@test.com",
+                        "phone": "9876543210",
+                        "bloodGroup": "A+",
+                        "medicalHistory": null,
+                        "createdAt": "2026-01-21T12:14:49.980Z",
+                        "updatedAt": "2026-01-21T12:17:01.831Z",
+                        "__v": 0
+                    },
+                    "status": true
+                }
+  /api/v2/ambulance/register:
+    post:
+      tags:
+        - Ambulance > Auth
+      summary: Register
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                driverName: Ravi Kumar
+                driverPhone: '9876543210'
+                password: secret123
+                vehicleNumber: TS09AB1234
+                status: offline
+                location:
+                  type: Point
+                  coordinates:
+                    - 78.4746
+                    - 17.3616
+      responses:
+        '201':
+          description: Created
+          headers:
+            X-Powered-By:
+              schema:
+                type: string
+                example: Express
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+                example: http://localhost:5000
+            Vary:
+              schema:
+                type: string
+                example: Origin
+            Access-Control-Allow-Credentials:
+              schema:
+                type: boolean
+                example: 'true'
+            Set-Cookie:
+              schema:
+                type: string
+                example: >-
+                  refreshToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzBjNDEzOTlmYmVmMjgwNjk4YWM1OSIsInJvbGUiOiJhbWJ1bGFuY2UiLCJpYXQiOjE3Njg5OTc5MDcsImV4cCI6MTc2OTYwMjcwN30.BmuvLGDecZpdImvV_nlbBYEothoHSOGd7XTm62bVfC8;
+                  Max-Age=604800; Path=/; Expires=Wed, 28 Jan 2026 12:18:27 GMT;
+                  HttpOnly; SameSite=Strict
+            Content-Type:
+              schema:
+                type: string
+                example: application/json; charset=utf-8
+            Content-Length:
+              schema:
+                type: integer
+                example: '1021'
+            ETag:
+              schema:
+                type: string
+                example: W/"3fd-7UFNFL7zx+xy7UgNyD6VeEBx45s"
+            Date:
+              schema:
+                type: string
+                example: Wed, 21 Jan 2026 12:18:27 GMT
+            Connection:
+              schema:
+                type: string
+                example: keep-alive
+            Keep-Alive:
+              schema:
+                type: string
+                example: timeout=5
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: |-
+                {
+                    "statusCode": 201,
+                    "message": "Ambulance registered successfully",
+                    "data": {
+                        "ambulance": {
+                            "location": {
+                                "type": "Point",
+                                "coordinates": [
+                                    78.4746,
+                                    17.3616
+                                ]
+                            },
+                            "_id": "6970c41399fbef280698ac59",
+                            "driverName": "sai Kumar",
+                            "driverPhone": "8876543210",
+                            "vehicleNumber": "TS09AB1235",
+                            "status": "offline",
+                            "createdAt": "2026-01-21T12:18:27.392Z",
+                            "updatedAt": "2026-01-21T12:18:27.444Z",
+                            "__v": 0,
+                            "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzBjNDEzOTlmYmVmMjgwNjk4YWM1OSIsInJvbGUiOiJhbWJ1bGFuY2UiLCJpYXQiOjE3Njg5OTc5MDcsImV4cCI6MTc2OTYwMjcwN30.BmuvLGDecZpdImvV_nlbBYEothoHSOGd7XTm62bVfC8"
+                        },
+                        "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzBjNDEzOTlmYmVmMjgwNjk4YWM1OSIsInJvbGUiOiJhbWJ1bGFuY2UiLCJpYXQiOjE3Njg5OTc5MDcsImV4cCI6MTc2ODk5ODgwN30.KmtlT5YsBSv4UOsjYgYeSTLUDTxwlebUbWErVDLkbtI",
+                        "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzBjNDEzOTlmYmVmMjgwNjk4YWM1OSIsInJvbGUiOiJhbWJ1bGFuY2UiLCJpYXQiOjE3Njg5OTc5MDcsImV4cCI6MTc2OTYwMjcwN30.BmuvLGDecZpdImvV_nlbBYEothoHSOGd7XTm62bVfC8"
+                    },
+                    "status": true
+                }
+  /api/v2/ambulance/login:
+    post:
+      tags:
+        - Ambulance > Auth
+      summary: Login
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                driverPhone: '8876543210'
+                password: secret123
+      responses:
+        '200':
+          description: OK
+          headers:
+            X-Powered-By:
+              schema:
+                type: string
+                example: Express
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+                example: http://localhost:5000
+            Vary:
+              schema:
+                type: string
+                example: Origin
+            Access-Control-Allow-Credentials:
+              schema:
+                type: boolean
+                example: 'true'
+            Set-Cookie:
+              schema:
+                type: string
+                example: >-
+                  refreshToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzBjNDEzOTlmYmVmMjgwNjk4YWM1OSIsInJvbGUiOiJhbWJ1bGFuY2UiLCJpYXQiOjE3Njg5OTc5MzEsImV4cCI6MTc2OTYwMjczMX0.RsZ3FpoYTQjMDhE467De5K8VPH_C2w-8tCyv0MZA0kM;
+                  Max-Age=604800; Path=/; Expires=Wed, 28 Jan 2026 12:18:51 GMT;
+                  HttpOnly; SameSite=Strict
+            Content-Type:
+              schema:
+                type: string
+                example: application/json; charset=utf-8
+            Content-Length:
+              schema:
+                type: integer
+                example: '806'
+            ETag:
+              schema:
+                type: string
+                example: W/"326-h1Jbsu9slFj2+YCDBdXeDDu4snk"
+            Date:
+              schema:
+                type: string
+                example: Wed, 21 Jan 2026 12:18:51 GMT
+            Connection:
+              schema:
+                type: string
+                example: keep-alive
+            Keep-Alive:
+              schema:
+                type: string
+                example: timeout=5
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: |-
+                {
+                    "statusCode": 200,
+                    "message": "Ambulance logged in successfully",
+                    "data": {
+                        "ambulance": {
+                            "location": {
+                                "type": "Point",
+                                "coordinates": [
+                                    78.4746,
+                                    17.3616
+                                ]
+                            },
+                            "_id": "6970c41399fbef280698ac59",
+                            "driverName": "sai Kumar",
+                            "driverPhone": "8876543210",
+                            "vehicleNumber": "TS09AB1235",
+                            "status": "offline",
+                            "createdAt": "2026-01-21T12:18:27.392Z",
+                            "updatedAt": "2026-01-21T12:18:51.361Z",
+                            "__v": 0
+                        },
+                        "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzBjNDEzOTlmYmVmMjgwNjk4YWM1OSIsInJvbGUiOiJhbWJ1bGFuY2UiLCJpYXQiOjE3Njg5OTc5MzEsImV4cCI6MTc2ODk5ODgzMX0.7zqqLn8faI4_XgpxOp5j8LtFvmEVQyWhwnvS0gMK5rg",
+                        "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzBjNDEzOTlmYmVmMjgwNjk4YWM1OSIsInJvbGUiOiJhbWJ1bGFuY2UiLCJpYXQiOjE3Njg5OTc5MzEsImV4cCI6MTc2OTYwMjczMX0.RsZ3FpoYTQjMDhE467De5K8VPH_C2w-8tCyv0MZA0kM"
+                    },
+                    "status": true
+                }
+  /api/v2/ambulance/logout:
+    post:
+      tags:
+        - Ambulance > Auth
+      summary: Logout
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: >-
+                "{\n  \"driverPhone\": \"9876543210\",\n  \"password\":
+                \"secret123\"\n}\n"
+      responses:
+        '200':
+          description: OK
+          headers:
+            X-Powered-By:
+              schema:
+                type: string
+                example: Express
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+                example: http://localhost:5000
+            Vary:
+              schema:
+                type: string
+                example: Origin
+            Access-Control-Allow-Credentials:
+              schema:
+                type: boolean
+                example: 'true'
+            Set-Cookie:
+              schema:
+                type: string
+                example: >-
+                  refreshToken=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT;
+                  HttpOnly; SameSite=Strict
+            Content-Type:
+              schema:
+                type: string
+                example: application/json; charset=utf-8
+            Content-Length:
+              schema:
+                type: integer
+                example: '88'
+            ETag:
+              schema:
+                type: string
+                example: W/"58-9vBXCWLKCkUlk9SRh2fF4ztBIUI"
+            Date:
+              schema:
+                type: string
+                example: Wed, 21 Jan 2026 12:19:05 GMT
+            Connection:
+              schema:
+                type: string
+                example: keep-alive
+            Keep-Alive:
+              schema:
+                type: string
+                example: timeout=5
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: |-
+                {
+                    "statusCode": 200,
+                    "message": "Ambulance logged out successfully",
+                    "data": {},
+                    "status": true
+                }
+  /api/v2/ambulance/me:
+    get:
+      tags:
+        - Ambulance > Auth
+      summary: Me
+      responses:
+        '200':
+          description: OK
+          headers:
+            X-Powered-By:
+              schema:
+                type: string
+                example: Express
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+                example: http://localhost:5000
+            Vary:
+              schema:
+                type: string
+                example: Origin
+            Access-Control-Allow-Credentials:
+              schema:
+                type: boolean
+                example: 'true'
+            Content-Type:
+              schema:
+                type: string
+                example: application/json; charset=utf-8
+            Content-Length:
+              schema:
+                type: integer
+                example: '371'
+            ETag:
+              schema:
+                type: string
+                example: W/"173-Ft1SlZlfhL4uIDW/rrpgwhiNcLU"
+            Date:
+              schema:
+                type: string
+                example: Wed, 21 Jan 2026 12:19:28 GMT
+            Connection:
+              schema:
+                type: string
+                example: keep-alive
+            Keep-Alive:
+              schema:
+                type: string
+                example: timeout=5
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: |-
+                {
+                    "statusCode": 200,
+                    "message": "Ambulance profile fetched successfully",
+                    "data": {
+                        "location": {
+                            "type": "Point",
+                            "coordinates": [
+                                78.4746,
+                                17.3616
+                            ]
+                        },
+                        "_id": "6970c41399fbef280698ac59",
+                        "driverName": "sai Kumar",
+                        "driverPhone": "8876543210",
+                        "vehicleNumber": "TS09AB1235",
+                        "status": "offline",
+                        "createdAt": "2026-01-21T12:18:27.392Z",
+                        "updatedAt": "2026-01-21T12:19:24.433Z",
+                        "__v": 0
+                    },
+                    "status": true
+                }
+  /api/v2/ambulance/status:
+    patch:
+      tags:
+        - Ambulance > Services
+      summary: Update-status
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                status: ready
+      responses:
+        '200':
+          description: OK
+          headers:
+            X-Powered-By:
+              schema:
+                type: string
+                example: Express
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+                example: http://localhost:5000
+            Vary:
+              schema:
+                type: string
+                example: Origin
+            Access-Control-Allow-Credentials:
+              schema:
+                type: boolean
+                example: 'true'
+            Content-Type:
+              schema:
+                type: string
+                example: application/json; charset=utf-8
+            Content-Length:
+              schema:
+                type: integer
+                example: '368'
+            ETag:
+              schema:
+                type: string
+                example: W/"170-OlkZl+ZKYHNzMP00WxLVyiWUZLs"
+            Date:
+              schema:
+                type: string
+                example: Wed, 21 Jan 2026 12:19:57 GMT
+            Connection:
+              schema:
+                type: string
+                example: keep-alive
+            Keep-Alive:
+              schema:
+                type: string
+                example: timeout=5
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: |-
+                {
+                    "statusCode": 200,
+                    "message": "Ambulance status updated successfully",
+                    "data": {
+                        "location": {
+                            "type": "Point",
+                            "coordinates": [
+                                78.4746,
+                                17.3616
+                            ]
+                        },
+                        "_id": "6970c41399fbef280698ac59",
+                        "driverName": "sai Kumar",
+                        "driverPhone": "8876543210",
+                        "vehicleNumber": "TS09AB1235",
+                        "status": "ready",
+                        "createdAt": "2026-01-21T12:18:27.392Z",
+                        "updatedAt": "2026-01-21T12:19:57.946Z",
+                        "__v": 0
+                    },
+                    "status": true
+                }
+  /api/v2/ambulance/location:
+    patch:
+      tags:
+        - Ambulance > Services
+      summary: update-location
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                location:
+                  type: Point
+                  coordinates:
+                    - 78.48237
+                    - 17.385
+      responses:
+        '200':
+          description: OK
+          headers:
+            X-Powered-By:
+              schema:
+                type: string
+                example: Express
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+                example: http://localhost:5000
+            Vary:
+              schema:
+                type: string
+                example: Origin
+            Access-Control-Allow-Credentials:
+              schema:
+                type: boolean
+                example: 'true'
+            Content-Type:
+              schema:
+                type: string
+                example: application/json; charset=utf-8
+            Content-Length:
+              schema:
+                type: integer
+                example: '370'
+            ETag:
+              schema:
+                type: string
+                example: W/"172-1Yb66j+d3belnTLyt8KcRukD92Y"
+            Date:
+              schema:
+                type: string
+                example: Wed, 21 Jan 2026 12:20:40 GMT
+            Connection:
+              schema:
+                type: string
+                example: keep-alive
+            Keep-Alive:
+              schema:
+                type: string
+                example: timeout=5
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: |-
+                {
+                    "statusCode": 200,
+                    "message": "Ambulance location updated successfully",
+                    "data": {
+                        "location": {
+                            "type": "Point",
+                            "coordinates": [
+                                78.48227,
+                                17.383
+                            ]
+                        },
+                        "_id": "6970c41399fbef280698ac59",
+                        "driverName": "sai Kumar",
+                        "driverPhone": "8876543210",
+                        "vehicleNumber": "TS09AB1235",
+                        "status": "ready",
+                        "createdAt": "2026-01-21T12:18:27.392Z",
+                        "updatedAt": "2026-01-21T12:20:40.780Z",
+                        "__v": 0
+                    },
+                    "status": true
+                }
+  /api/v2/ambulance/nearby:
+    get:
+      tags:
+        - Ambulance > Services
+      summary: NearByAmbulance
+      parameters:
+        - name: longitude
+          in: query
+          schema:
+            type: number
+          example: '78.4746'
+        - name: latitude
+          in: query
+          schema:
+            type: number
+          example: '17.3616'
+        - name: limit
+          in: query
+          schema:
+            type: integer
+          example: '2'
+      responses:
+        '200':
+          description: OK
+          headers:
+            X-Powered-By:
+              schema:
+                type: string
+                example: Express
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+                example: http://localhost:5000
+            Vary:
+              schema:
+                type: string
+                example: Origin
+            Access-Control-Allow-Credentials:
+              schema:
+                type: boolean
+                example: 'true'
+            Content-Type:
+              schema:
+                type: string
+                example: application/json; charset=utf-8
+            Content-Length:
+              schema:
+                type: integer
+                example: '460'
+            ETag:
+              schema:
+                type: string
+                example: W/"1cc-Y0BlSYWUzqjP3qnhCwq5qAvuZLg"
+            Date:
+              schema:
+                type: string
+                example: Wed, 21 Jan 2026 12:21:07 GMT
+            Connection:
+              schema:
+                type: string
+                example: keep-alive
+            Keep-Alive:
+              schema:
+                type: string
+                example: timeout=5
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: |-
+                {
+                    "statusCode": 200,
+                    "message": "Found 1 nearby ambulance(s)",
+                    "data": {
+                        "count": 1,
+                        "ambulances": [
+                            {
+                                "ambulanceId": "6970c41399fbef280698ac59",
+                                "distance": 2516,
+                                "ambulanceData": {
+                                    "location": {
+                                        "type": "Point",
+                                        "coordinates": [
+                                            78.48227,
+                                            17.383
+                                        ]
+                                    },
+                                    "_id": "6970c41399fbef280698ac59",
+                                    "driverName": "sai Kumar",
+                                    "driverPhone": "8876543210",
+                                    "vehicleNumber": "TS09AB1235",
+                                    "status": "ready",
+                                    "createdAt": "2026-01-21T12:18:27.392Z",
+                                    "updatedAt": "2026-01-21T12:20:40.780Z",
+                                    "__v": 0
+                                }
+                            }
+                        ]
+                    },
+                    "status": true
+                }
+  /api/v2/ambulance/stats:
+    get:
+      tags:
+        - Ambulance > Services
+      summary: Ambulance-stats
+      responses:
+        '200':
+          description: OK
+          headers:
+            X-Powered-By:
+              schema:
+                type: string
+                example: Express
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+                example: http://localhost:5000
+            Vary:
+              schema:
+                type: string
+                example: Origin
+            Access-Control-Allow-Credentials:
+              schema:
+                type: boolean
+                example: 'true'
+            Content-Type:
+              schema:
+                type: string
+                example: application/json; charset=utf-8
+            Content-Length:
+              schema:
+                type: integer
+                example: '189'
+            ETag:
+              schema:
+                type: string
+                example: W/"bd-DF8JQ+BBMs7AF4On0paV6r7TSbk"
+            Date:
+              schema:
+                type: string
+                example: Wed, 21 Jan 2026 12:21:29 GMT
+            Connection:
+              schema:
+                type: string
+                example: keep-alive
+            Keep-Alive:
+              schema:
+                type: string
+                example: timeout=5
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: |-
+                {
+                    "statusCode": 200,
+                    "message": "Ambulance statistics retrieved successfully",
+                    "data": {
+                        "activeAmbulances": 2,
+                        "ambulanceIds": [
+                            "6970c41399fbef280698ac59",
+                            "6942cd15980a1c1cfc33d911"
+                        ]
+                    },
+                    "status": true
+                }
+  /api/v2/admin/register:
+    post:
+      tags:
+        - Admin
+      summary: register-Admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                name: Super Admin
+                email: admin@medswift.com
+                password: adminsecurepassword123
+                secretKey: adminsecret
+      responses:
+        '201':
+          description: Created
+          headers:
+            X-Powered-By:
+              schema:
+                type: string
+                example: Express
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+                example: http://localhost:5000
+            Vary:
+              schema:
+                type: string
+                example: Origin
+            Access-Control-Allow-Credentials:
+              schema:
+                type: boolean
+                example: 'true'
+            Content-Type:
+              schema:
+                type: string
+                example: application/json; charset=utf-8
+            Content-Length:
+              schema:
+                type: integer
+                example: '249'
+            ETag:
+              schema:
+                type: string
+                example: W/"f9-NCjAvyh6GWhpJQkyhOSswkfq8O4"
+            Date:
+              schema:
+                type: string
+                example: Wed, 21 Jan 2026 12:22:10 GMT
+            Connection:
+              schema:
+                type: string
+                example: keep-alive
+            Keep-Alive:
+              schema:
+                type: string
+                example: timeout=5
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: |-
+                {
+                    "statusCode": 201,
+                    "message": "Admin created successfully",
+                    "data": {
+                        "_id": "6970c4f299fbef280698ac6c",
+                        "name": "Hyper Admin",
+                        "email": "hyper@medswift.com",
+                        "createdAt": "2026-01-21T12:22:10.692Z",
+                        "updatedAt": "2026-01-21T12:22:10.692Z",
+                        "__v": 0
+                    },
+                    "status": true
+                }
+  /api/v2/admin/login:
+    post:
+      tags:
+        - Admin
+      summary: login-Admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                email: admin@medswift.com
+                password: adminsecurepassword123
+      responses:
+        '200':
+          description: OK
+          headers:
+            X-Powered-By:
+              schema:
+                type: string
+                example: Express
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+                example: http://localhost:5000
+            Vary:
+              schema:
+                type: string
+                example: Origin
+            Access-Control-Allow-Credentials:
+              schema:
+                type: boolean
+                example: 'true'
+            Set-Cookie:
+              schema:
+                type: string
+                example: >-
+                  refreshToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzBjNGYyOTlmYmVmMjgwNjk4YWM2YyIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc2ODk5ODE2MCwiZXhwIjoxNzY5NjAyOTYwfQ.in71iPrOtJgLi6eXypVLW5Q2J9ehGnE23oC1AHd8ofw;
+                  Max-Age=604800; Path=/; Expires=Wed, 28 Jan 2026 12:22:40 GMT;
+                  HttpOnly; SameSite=Strict
+            Content-Type:
+              schema:
+                type: string
+                example: application/json; charset=utf-8
+            Content-Length:
+              schema:
+                type: integer
+                example: '678'
+            ETag:
+              schema:
+                type: string
+                example: W/"2a6-pVOHlViU8vAkASmC4bMuSa7amS0"
+            Date:
+              schema:
+                type: string
+                example: Wed, 21 Jan 2026 12:22:40 GMT
+            Connection:
+              schema:
+                type: string
+                example: keep-alive
+            Keep-Alive:
+              schema:
+                type: string
+                example: timeout=5
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: |-
+                {
+                    "statusCode": 200,
+                    "message": "Admin logged in successfully",
+                    "data": {
+                        "admin": {
+                            "_id": "6970c4f299fbef280698ac6c",
+                            "name": "Hyper Admin",
+                            "email": "hyper@medswift.com",
+                            "createdAt": "2026-01-21T12:22:10.692Z",
+                            "updatedAt": "2026-01-21T12:22:40.766Z",
+                            "__v": 0
+                        },
+                        "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzBjNGYyOTlmYmVmMjgwNjk4YWM2YyIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc2ODk5ODE2MCwiZXhwIjoxNzY4OTk5MDYwfQ.HWnzecaIWL4fOXBS-KCLH1dElSVmbmtx0ysON-ijPfw",
+                        "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzBjNGYyOTlmYmVmMjgwNjk4YWM2YyIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc2ODk5ODE2MCwiZXhwIjoxNzY5NjAyOTYwfQ.in71iPrOtJgLi6eXypVLW5Q2J9ehGnE23oC1AHd8ofw"
+                    },
+                    "status": true
+                }
+  /api/v2/admin/me:
+    get:
+      tags:
+        - Admin
+      summary: me-Admin
+      responses:
+        '200':
+          description: OK
+          headers:
+            X-Powered-By:
+              schema:
+                type: string
+                example: Express
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+                example: http://localhost:5000
+            Vary:
+              schema:
+                type: string
+                example: Origin
+            Access-Control-Allow-Credentials:
+              schema:
+                type: boolean
+                example: 'true'
+            Content-Type:
+              schema:
+                type: string
+                example: application/json; charset=utf-8
+            Content-Length:
+              schema:
+                type: integer
+                example: '236'
+            ETag:
+              schema:
+                type: string
+                example: W/"ec-YCorNee5d5T92GkAJ5d/nDvwjdo"
+            Date:
+              schema:
+                type: string
+                example: Wed, 21 Jan 2026 12:23:00 GMT
+            Connection:
+              schema:
+                type: string
+                example: keep-alive
+            Keep-Alive:
+              schema:
+                type: string
+                example: timeout=5
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: |-
+                {
+                    "statusCode": 200,
+                    "message": "Admin profile",
+                    "data": {
+                        "_id": "6970c4f299fbef280698ac6c",
+                        "name": "Hyper Admin",
+                        "email": "hyper@medswift.com",
+                        "createdAt": "2026-01-21T12:22:10.692Z",
+                        "updatedAt": "2026-01-21T12:22:40.766Z",
+                        "__v": 0
+                    },
+                    "status": true
+                }
+  /api/v2/hospital/register:
+    post:
+      tags:
+        - hospital > Auth
+      summary: Hospital-Register
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                name: City General Hospital
+                email: contact@cityhospital.com
+                password: secure123
+                phone: '+1234567890'
+                address: 123 Medical Center Drive, Healthcare City
+                location:
+                  type: Point
+                  coordinates:
+                    - 78.4867
+                    - 17.385
+                inventory:
+                  beds:
+                    total: 200
+                    available: 50
+                  bloodStock:
+                    A_positive: 10
+                    A_negative: 5
+                    B_positive: 8
+                    O_positive: 15
+                    O_negative: 3
+                    AB_positive: 6
+                    AB_negative: 2
+      responses:
+        '201':
+          description: Created
+          headers:
+            X-Powered-By:
+              schema:
+                type: string
+                example: Express
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+                example: http://localhost:5000
+            Vary:
+              schema:
+                type: string
+                example: Origin
+            Access-Control-Allow-Credentials:
+              schema:
+                type: boolean
+                example: 'true'
+            Set-Cookie:
+              schema:
+                type: string
+                example: >-
+                  refreshToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzBjNjUzOTQ3YTAzZDdjMzhmYjA5ZSIsInJvbGUiOiJob3NwaXRhbCIsImlhdCI6MTc2ODk5ODQ4MywiZXhwIjoxNzY5NjAzMjgzfQ.9uqW-b9nLpSb1NlHfop93qWCgB44Eqh9kzvaL3B28wQ;
+                  Max-Age=604800; Path=/; Expires=Wed, 28 Jan 2026 12:28:03 GMT;
+                  HttpOnly; SameSite=Strict
+            Content-Type:
+              schema:
+                type: string
+                example: application/json; charset=utf-8
+            Content-Length:
+              schema:
+                type: integer
+                example: '1256'
+            ETag:
+              schema:
+                type: string
+                example: W/"4e8-GeapN3XdDTaj0SlM++imSI27mbg"
+            Date:
+              schema:
+                type: string
+                example: Wed, 21 Jan 2026 12:28:03 GMT
+            Connection:
+              schema:
+                type: string
+                example: keep-alive
+            Keep-Alive:
+              schema:
+                type: string
+                example: timeout=5
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: |-
+                {
+                    "statusCode": 201,
+                    "message": "Hospital registered successfully",
+                    "data": {
+                        "hospital": {
+                            "location": {
+                                "type": "Point",
+                                "coordinates": [
+                                    78.4867,
+                                    17.385
+                                ]
+                            },
+                            "inventory": {
+                                "beds": {
+                                    "total": 200,
+                                    "available": 50
+                                },
+                                "bloodStock": {
+                                    "A_positive": 10,
+                                    "A_negative": 5,
+                                    "B_positive": 8,
+                                    "B_negative": 0,
+                                    "O_positive": 15,
+                                    "O_negative": 3,
+                                    "AB_positive": 6,
+                                    "AB_negative": 2
+                                }
+                            },
+                            "_id": "6970c653947a03d7c38fb09e",
+                            "name": "Hyderabad General Hospital",
+                            "email": "contact@hyderabadhospital.com",
+                            "phone": "+1334567890",
+                            "address": "123 Medical Center Drive, Healthcare City",
+                            "createdAt": "2026-01-21T12:28:03.381Z",
+                            "updatedAt": "2026-01-21T12:28:03.439Z",
+                            "__v": 0,
+                            "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzBjNjUzOTQ3YTAzZDdjMzhmYjA5ZSIsInJvbGUiOiJob3NwaXRhbCIsImlhdCI6MTc2ODk5ODQ4MywiZXhwIjoxNzY5NjAzMjgzfQ.9uqW-b9nLpSb1NlHfop93qWCgB44Eqh9kzvaL3B28wQ"
+                        },
+                        "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzBjNjUzOTQ3YTAzZDdjMzhmYjA5ZSIsInJvbGUiOiJob3NwaXRhbCIsImlhdCI6MTc2ODk5ODQ4MywiZXhwIjoxNzY4OTk5MzgzfQ.DXO7hhE2_enz4Y_QP2DBG18OfN6Q44uzLc4UqDXeT2w",
+                        "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzBjNjUzOTQ3YTAzZDdjMzhmYjA5ZSIsInJvbGUiOiJob3NwaXRhbCIsImlhdCI6MTc2ODk5ODQ4MywiZXhwIjoxNzY5NjAzMjgzfQ.9uqW-b9nLpSb1NlHfop93qWCgB44Eqh9kzvaL3B28wQ"
+                    },
+                    "status": true
+                }
+  /api/v2/hospital/login:
+    post:
+      tags:
+        - hospital > Auth
+      summary: Hospital-Login
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: >-
+                "{\n  \"name\": \"City General Hospital\",\n  \"email\":
+                \"contact@cityhospital.com\",\n  \"password\": \"secure123\",\n 
+                \"phone\": \"+1234567890\",\n  \"address\": \"123 Medical Center
+                Drive, Healthcare City\",\n  \"location\": {\n    \"type\":
+                \"Point\",\n    \"coordinates\": [78.4867, 17.3850]\n  },\n 
+                \"inventory\": {\n    \"beds\": {\n      \"total\": 200,\n     
+                \"available\": 50\n    },\n    \"bloodStock\": {\n     
+                \"A_positive\": 10,\n      \"A_negative\": 5,\n     
+                \"B_positive\": 8,\n      \"O_positive\": 15,\n     
+                \"O_negative\": 3,\n      \"AB_positive\": 6,\n     
+                \"AB_negative\": 2\n    }\n  }\n}"
+      responses:
+        '200':
+          description: OK
+          headers:
+            X-Powered-By:
+              schema:
+                type: string
+                example: Express
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+                example: http://localhost:5000
+            Vary:
+              schema:
+                type: string
+                example: Origin
+            Access-Control-Allow-Credentials:
+              schema:
+                type: boolean
+                example: 'true'
+            Set-Cookie:
+              schema:
+                type: string
+                example: >-
+                  refreshToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzBjNjUzOTQ3YTAzZDdjMzhmYjA5ZSIsInJvbGUiOiJob3NwaXRhbCIsImlhdCI6MTc2ODk5ODUwNiwiZXhwIjoxNzY5NjAzMzA2fQ.0EpG7BPSxhjv0ZUQ9UKQfGBGowHdjWyE6rgbS3nOelg;
+                  Max-Age=604800; Path=/; Expires=Wed, 28 Jan 2026 12:28:26 GMT;
+                  HttpOnly; SameSite=Strict
+            Content-Type:
+              schema:
+                type: string
+                example: application/json; charset=utf-8
+            Content-Length:
+              schema:
+                type: integer
+                example: '1042'
+            ETag:
+              schema:
+                type: string
+                example: W/"412-OENdSt2qrHOWJR4b1oOVCVUor1g"
+            Date:
+              schema:
+                type: string
+                example: Wed, 21 Jan 2026 12:28:26 GMT
+            Connection:
+              schema:
+                type: string
+                example: keep-alive
+            Keep-Alive:
+              schema:
+                type: string
+                example: timeout=5
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: |-
+                {
+                    "statusCode": 200,
+                    "message": "Hospital logged in successfully",
+                    "data": {
+                        "hospital": {
+                            "location": {
+                                "type": "Point",
+                                "coordinates": [
+                                    78.4867,
+                                    17.385
+                                ]
+                            },
+                            "inventory": {
+                                "beds": {
+                                    "total": 200,
+                                    "available": 50
+                                },
+                                "bloodStock": {
+                                    "A_positive": 10,
+                                    "A_negative": 5,
+                                    "B_positive": 8,
+                                    "B_negative": 0,
+                                    "O_positive": 15,
+                                    "O_negative": 3,
+                                    "AB_positive": 6,
+                                    "AB_negative": 2
+                                }
+                            },
+                            "_id": "6970c653947a03d7c38fb09e",
+                            "name": "Hyderabad General Hospital",
+                            "email": "contact@hyderabadhospital.com",
+                            "phone": "+1334567890",
+                            "address": "123 Medical Center Drive, Healthcare City",
+                            "createdAt": "2026-01-21T12:28:03.381Z",
+                            "updatedAt": "2026-01-21T12:28:26.540Z",
+                            "__v": 0
+                        },
+                        "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzBjNjUzOTQ3YTAzZDdjMzhmYjA5ZSIsInJvbGUiOiJob3NwaXRhbCIsImlhdCI6MTc2ODk5ODUwNiwiZXhwIjoxNzY4OTk5NDA2fQ.rIR4XZ1iqTsoiZ8x0yZRAS9WrBhQlipmAfZ0avSC0xE",
+                        "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzBjNjUzOTQ3YTAzZDdjMzhmYjA5ZSIsInJvbGUiOiJob3NwaXRhbCIsImlhdCI6MTc2ODk5ODUwNiwiZXhwIjoxNzY5NjAzMzA2fQ.0EpG7BPSxhjv0ZUQ9UKQfGBGowHdjWyE6rgbS3nOelg"
+                    },
+                    "status": true
+                }
+  /api/v2/hospital/me:
+    get:
+      tags:
+        - hospital > Auth
+      summary: Hospital-Me
+      responses:
+        '200':
+          description: OK
+          headers:
+            X-Powered-By:
+              schema:
+                type: string
+                example: Express
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+                example: http://localhost:5000
+            Vary:
+              schema:
+                type: string
+                example: Origin
+            Access-Control-Allow-Credentials:
+              schema:
+                type: boolean
+                example: 'true'
+            Content-Type:
+              schema:
+                type: string
+                example: application/json; charset=utf-8
+            Content-Length:
+              schema:
+                type: integer
+                example: '610'
+            ETag:
+              schema:
+                type: string
+                example: W/"262-FelUQ64RjBDlRoX8qMQQcoAIPgQ"
+            Date:
+              schema:
+                type: string
+                example: Wed, 21 Jan 2026 12:28:35 GMT
+            Connection:
+              schema:
+                type: string
+                example: keep-alive
+            Keep-Alive:
+              schema:
+                type: string
+                example: timeout=5
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: |-
+                {
+                    "statusCode": 200,
+                    "message": "Hospital profile fetched successfully",
+                    "data": {
+                        "location": {
+                            "type": "Point",
+                            "coordinates": [
+                                78.4867,
+                                17.385
+                            ]
+                        },
+                        "inventory": {
+                            "beds": {
+                                "total": 200,
+                                "available": 50
+                            },
+                            "bloodStock": {
+                                "A_positive": 10,
+                                "A_negative": 5,
+                                "B_positive": 8,
+                                "B_negative": 0,
+                                "O_positive": 15,
+                                "O_negative": 3,
+                                "AB_positive": 6,
+                                "AB_negative": 2
+                            }
+                        },
+                        "_id": "6970c653947a03d7c38fb09e",
+                        "name": "Hyderabad General Hospital",
+                        "email": "contact@hyderabadhospital.com",
+                        "phone": "+1334567890",
+                        "address": "123 Medical Center Drive, Healthcare City",
+                        "createdAt": "2026-01-21T12:28:03.381Z",
+                        "updatedAt": "2026-01-21T12:28:26.540Z",
+                        "__v": 0
+                    },
+                    "status": true
+                }
+  /api/v2/hospital/inventory:
+    patch:
+      tags:
+        - hospital > Services
+      summary: Update-Inventory
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                beds:
+                  available: 45
+                bloodStock:
+                  A_positive: 12
+                  O_negative: 5
+      responses:
+        '200':
+          description: OK
+          headers:
+            X-Powered-By:
+              schema:
+                type: string
+                example: Express
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+                example: http://localhost:5000
+            Vary:
+              schema:
+                type: string
+                example: Origin
+            Access-Control-Allow-Credentials:
+              schema:
+                type: boolean
+                example: 'true'
+            Content-Type:
+              schema:
+                type: string
+                example: application/json; charset=utf-8
+            Content-Length:
+              schema:
+                type: integer
+                example: '612'
+            ETag:
+              schema:
+                type: string
+                example: W/"264-xwZ2rKuDgMImMJ+/8GTcXUsujSo"
+            Date:
+              schema:
+                type: string
+                example: Wed, 21 Jan 2026 12:29:00 GMT
+            Connection:
+              schema:
+                type: string
+                example: keep-alive
+            Keep-Alive:
+              schema:
+                type: string
+                example: timeout=5
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: |-
+                {
+                    "statusCode": 200,
+                    "message": "Hospital inventory updated successfully",
+                    "data": {
+                        "location": {
+                            "type": "Point",
+                            "coordinates": [
+                                78.4867,
+                                17.385
+                            ]
+                        },
+                        "inventory": {
+                            "beds": {
+                                "total": 200,
+                                "available": 45
+                            },
+                            "bloodStock": {
+                                "A_positive": 12,
+                                "A_negative": 5,
+                                "B_positive": 8,
+                                "B_negative": 0,
+                                "O_positive": 15,
+                                "O_negative": 5,
+                                "AB_positive": 6,
+                                "AB_negative": 2
+                            }
+                        },
+                        "_id": "6970c653947a03d7c38fb09e",
+                        "name": "Hyderabad General Hospital",
+                        "email": "contact@hyderabadhospital.com",
+                        "phone": "+1334567890",
+                        "address": "123 Medical Center Drive, Healthcare City",
+                        "createdAt": "2026-01-21T12:28:03.381Z",
+                        "updatedAt": "2026-01-21T12:29:00.319Z",
+                        "__v": 0
+                    },
+                    "status": true
+                }
+  /api/v2/hospital/nearby:
+    get:
+      tags:
+        - hospital > Services
+      summary: NearBy_Hospital
+      parameters:
+        - name: longitude
+          in: query
+          schema:
+            type: number
+          example: '78.4867'
+        - name: latitude
+          in: query
+          schema:
+            type: number
+          example: '17.385'
+        - name: bloodType
+          in: query
+          schema:
+            type: string
+          example: A+
+        - name: requireBeds
+          in: query
+          schema:
+            type: boolean
+          example: 'true'
+      responses:
+        '200':
+          description: OK
+          headers:
+            X-Powered-By:
+              schema:
+                type: string
+                example: Express
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+                example: http://localhost:5000
+            Vary:
+              schema:
+                type: string
+                example: Origin
+            Access-Control-Allow-Credentials:
+              schema:
+                type: boolean
+                example: 'true'
+            Content-Type:
+              schema:
+                type: string
+                example: application/json; charset=utf-8
+            Content-Length:
+              schema:
+                type: integer
+                example: '1276'
+            ETag:
+              schema:
+                type: string
+                example: W/"4fc-VPWB6sylhGXZXRPnYuhv2qevuAc"
+            Date:
+              schema:
+                type: string
+                example: Wed, 21 Jan 2026 12:29:18 GMT
+            Connection:
+              schema:
+                type: string
+                example: keep-alive
+            Keep-Alive:
+              schema:
+                type: string
+                example: timeout=5
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: |-
+                {
+                    "statusCode": 200,
+                    "message": "Found 2 nearby hospital(s)",
+                    "data": {
+                        "count": 2,
+                        "hospitals": [
+                            {
+                                "hospitalId": "694d1fc56aa5a51171e6cffc",
+                                "distance": 0,
+                                "hospitalData": {
+                                    "location": {
+                                        "type": "Point",
+                                        "coordinates": [
+                                            78.4867,
+                                            17.385
+                                        ]
+                                    },
+                                    "inventory": {
+                                        "beds": {
+                                            "total": 200,
+                                            "available": 45
+                                        },
+                                        "bloodStock": {
+                                            "A_positive": 12,
+                                            "A_negative": 5,
+                                            "B_positive": 8,
+                                            "B_negative": 0,
+                                            "O_positive": 15,
+                                            "O_negative": 5,
+                                            "AB_positive": 6,
+                                            "AB_negative": 2
+                                        }
+                                    },
+                                    "_id": "694d1fc56aa5a51171e6cffc",
+                                    "name": "City General Hospital",
+                                    "email": "contact@cityhospital.com",
+                                    "phone": "+1234567890",
+                                    "address": "123 Medical Center Drive, Healthcare City",
+                                    "createdAt": "2025-12-25T11:28:05.618Z",
+                                    "updatedAt": "2026-01-15T08:48:05.600Z",
+                                    "__v": 0
+                                }
+                            },
+                            {
+                                "hospitalId": "6970c653947a03d7c38fb09e",
+                                "distance": 0,
+                                "hospitalData": {
+                                    "location": {
+                                        "type": "Point",
+                                        "coordinates": [
+                                            78.4867,
+                                            17.385
+                                        ]
+                                    },
+                                    "inventory": {
+                                        "beds": {
+                                            "total": 200,
+                                            "available": 45
+                                        },
+                                        "bloodStock": {
+                                            "A_positive": 12,
+                                            "A_negative": 5,
+                                            "B_positive": 8,
+                                            "B_negative": 0,
+                                            "O_positive": 15,
+                                            "O_negative": 5,
+                                            "AB_positive": 6,
+                                            "AB_negative": 2
+                                        }
+                                    },
+                                    "_id": "6970c653947a03d7c38fb09e",
+                                    "name": "Hyderabad General Hospital",
+                                    "email": "contact@hyderabadhospital.com",
+                                    "phone": "+1334567890",
+                                    "address": "123 Medical Center Drive, Healthcare City",
+                                    "createdAt": "2026-01-21T12:28:03.381Z",
+                                    "updatedAt": "2026-01-21T12:29:00.319Z",
+                                    "__v": 0
+                                }
+                            }
+                        ]
+                    },
+                    "status": true
+                }
+  /api/v2/trip/request:
+    post:
+      tags:
+        - Trip
+      summary: CreateTrip
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                pickupAddress: 123 Main Street, Hyderabad
+                pickupCoordinates:
+                  - 78.4867
+                  - 17.385
+                destinationHospitalId: optional-hospital-id
+                bloodType: A+
+                requireBeds: true
+      responses:
+        '201':
+          description: Created
+          headers:
+            X-Powered-By:
+              schema:
+                type: string
+                example: Express
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+                example: http://localhost:5000
+            Vary:
+              schema:
+                type: string
+                example: Origin
+            Access-Control-Allow-Credentials:
+              schema:
+                type: boolean
+                example: 'true'
+            Content-Type:
+              schema:
+                type: string
+                example: application/json; charset=utf-8
+            Content-Length:
+              schema:
+                type: integer
+                example: '871'
+            ETag:
+              schema:
+                type: string
+                example: W/"367-JG8AqYnvBU/Q9GULdpphtAaP6fU"
+            Date:
+              schema:
+                type: string
+                example: Wed, 21 Jan 2026 12:31:07 GMT
+            Connection:
+              schema:
+                type: string
+                example: keep-alive
+            Keep-Alive:
+              schema:
+                type: string
+                example: timeout=5
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: |-
+                {
+                    "statusCode": 201,
+                    "message": "Ambulance request created successfully. Searching for available ambulances...",
+                    "data": {
+                        "userId": "6970c33999fbef280698ac47",
+                        "ambulanceId": null,
+                        "destinationHospitalId": "694d1fc56aa5a51171e6cffc",
+                        "status": "SEARCHING",
+                        "pickup": {
+                            "address": "123 Main Street, Hyderabad",
+                            "coordinates": [
+                                78.4867,
+                                17.385
+                            ]
+                        },
+                        "dropoff": {
+                            "address": "123 Medical Center Drive, Healthcare City",
+                            "coordinates": [
+                                78.4867,
+                                17.385
+                            ]
+                        },
+                        "patientSnapshot": {
+                            "userId": "6970c33999fbef280698ac47",
+                            "name": "sai krishna",
+                            "phone": "9876543210",
+                            "medicalHistory": "",
+                            "bloodGroup": "A+"
+                        },
+                        "timeline": [
+                            {
+                                "status": "SEARCHING",
+                                "timestamp": "2026-01-21T12:31:07.732Z",
+                                "location": [
+                                    78.4867,
+                                    17.385
+                                ],
+                                "updatedBy": "user:6970c33999fbef280698ac47",
+                                "_id": "6970c70b947a03d7c38fb0b4"
+                            }
+                        ],
+                        "_id": "6970c70b947a03d7c38fb0b3",
+                        "createdAt": "2026-01-21T12:31:07.734Z",
+                        "updatedAt": "2026-01-21T12:31:07.734Z",
+                        "__v": 0
+                    },
+                    "status": true
+                }
+  /api/v2/trip/active:
+    get:
+      tags:
+        - Trip
+      summary: Get-Active_Trip
+      responses:
+        '200':
+          description: OK
+          headers:
+            X-Powered-By:
+              schema:
+                type: string
+                example: Express
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+                example: http://localhost:5000
+            Vary:
+              schema:
+                type: string
+                example: Origin
+            Access-Control-Allow-Credentials:
+              schema:
+                type: boolean
+                example: 'true'
+            Content-Type:
+              schema:
+                type: string
+                example: application/json; charset=utf-8
+            Content-Length:
+              schema:
+                type: integer
+                example: '1312'
+            ETag:
+              schema:
+                type: string
+                example: W/"520-y5qh03JbPbMdsZfGN0bNQwUN+KU"
+            Date:
+              schema:
+                type: string
+                example: Wed, 21 Jan 2026 12:31:22 GMT
+            Connection:
+              schema:
+                type: string
+                example: keep-alive
+            Keep-Alive:
+              schema:
+                type: string
+                example: timeout=5
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: |-
+                {
+                    "statusCode": 200,
+                    "message": "Active trip retrieved successfully",
+                    "data": {
+                        "_id": "6970c70b947a03d7c38fb0b3",
+                        "userId": "6970c33999fbef280698ac47",
+                        "ambulanceId": null,
+                        "destinationHospitalId": {
+                            "_id": "694d1fc56aa5a51171e6cffc",
+                            "name": "City General Hospital",
+                            "email": "contact@cityhospital.com",
+                            "phone": "+1234567890",
+                            "address": "123 Medical Center Drive, Healthcare City",
+                            "location": {
+                                "type": "Point",
+                                "coordinates": [
+                                    78.4867,
+                                    17.385
+                                ]
+                            },
+                            "inventory": {
+                                "beds": {
+                                    "total": 200,
+                                    "available": 45
+                                },
+                                "bloodStock": {
+                                    "A_positive": 12,
+                                    "A_negative": 5,
+                                    "B_positive": 8,
+                                    "B_negative": 0,
+                                    "O_positive": 15,
+                                    "O_negative": 5,
+                                    "AB_positive": 6,
+                                    "AB_negative": 2
+                                }
+                            },
+                            "createdAt": "2025-12-25T11:28:05.618Z",
+                            "updatedAt": "2026-01-15T08:48:05.600Z",
+                            "__v": 0
+                        },
+                        "status": "SEARCHING",
+                        "pickup": {
+                            "address": "123 Main Street, Hyderabad",
+                            "coordinates": [
+                                78.4867,
+                                17.385
+                            ]
+                        },
+                        "dropoff": {
+                            "address": "123 Medical Center Drive, Healthcare City",
+                            "coordinates": [
+                                78.4867,
+                                17.385
+                            ]
+                        },
+                        "patientSnapshot": {
+                            "userId": "6970c33999fbef280698ac47",
+                            "name": "sai krishna",
+                            "phone": "9876543210",
+                            "medicalHistory": "",
+                            "bloodGroup": "A+"
+                        },
+                        "timeline": [
+                            {
+                                "status": "SEARCHING",
+                                "timestamp": "2026-01-21T12:31:07.732Z",
+                                "location": [
+                                    78.4867,
+                                    17.385
+                                ],
+                                "updatedBy": "user:6970c33999fbef280698ac47",
+                                "_id": "6970c70b947a03d7c38fb0b4"
+                            }
+                        ],
+                        "createdAt": "2026-01-21T12:31:07.734Z",
+                        "updatedAt": "2026-01-21T12:31:07.734Z",
+                        "__v": 0
+                    },
+                    "status": true
+                }
+  /api/v2/trip/history:
+    get:
+      tags:
+        - Trip
+      summary: Trip-History
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+          example: '10'
+      responses:
+        '200':
+          description: OK
+          headers:
+            X-Powered-By:
+              schema:
+                type: string
+                example: Express
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+                example: http://localhost:5000
+            Vary:
+              schema:
+                type: string
+                example: Origin
+            Access-Control-Allow-Credentials:
+              schema:
+                type: boolean
+                example: 'true'
+            Content-Type:
+              schema:
+                type: string
+                example: application/json; charset=utf-8
+            Content-Length:
+              schema:
+                type: integer
+                example: '944'
+            ETag:
+              schema:
+                type: string
+                example: W/"3b0-/ZQsWZogXIZNFeclvxtsi9NcP2o"
+            Date:
+              schema:
+                type: string
+                example: Wed, 21 Jan 2026 12:31:36 GMT
+            Connection:
+              schema:
+                type: string
+                example: keep-alive
+            Keep-Alive:
+              schema:
+                type: string
+                example: timeout=5
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: |-
+                {
+                    "statusCode": 200,
+                    "message": "Trip history retrieved successfully",
+                    "data": {
+                        "count": 1,
+                        "trips": [
+                            {
+                                "pickup": {
+                                    "address": "123 Main Street, Hyderabad",
+                                    "coordinates": [
+                                        78.4867,
+                                        17.385
+                                    ]
+                                },
+                                "dropoff": {
+                                    "address": "123 Medical Center Drive, Healthcare City",
+                                    "coordinates": [
+                                        78.4867,
+                                        17.385
+                                    ]
+                                },
+                                "patientSnapshot": {
+                                    "userId": "6970c33999fbef280698ac47",
+                                    "name": "sai krishna",
+                                    "phone": "9876543210",
+                                    "medicalHistory": "",
+                                    "bloodGroup": "A+"
+                                },
+                                "_id": "6970c70b947a03d7c38fb0b3",
+                                "userId": "6970c33999fbef280698ac47",
+                                "ambulanceId": null,
+                                "destinationHospitalId": {
+                                    "_id": "694d1fc56aa5a51171e6cffc",
+                                    "name": "City General Hospital",
+                                    "address": "123 Medical Center Drive, Healthcare City"
+                                },
+                                "status": "SEARCHING",
+                                "timeline": [
+                                    {
+                                        "status": "SEARCHING",
+                                        "timestamp": "2026-01-21T12:31:07.732Z",
+                                        "location": [
+                                            78.4867,
+                                            17.385
+                                        ],
+                                        "updatedBy": "user:6970c33999fbef280698ac47",
+                                        "_id": "6970c70b947a03d7c38fb0b4"
+                                    }
+                                ],
+                                "createdAt": "2026-01-21T12:31:07.734Z",
+                                "updatedAt": "2026-01-21T12:31:07.734Z",
+                                "__v": 0
+                            }
+                        ]
+                    },
+                    "status": true
+                }
+  /api/v2/trip/{tripId}/accept:
+    post:
+      tags:
+        - Trip
+      summary: Ambulance-accept
+      requestBody:
+        content: {}
+      parameters:
+        - name: tripId
+          in: path
+          schema:
+            type: string
+          required: true
+          example: 695010405bf0d5d8564d9bea
+      responses:
+        '200':
+          description: OK
+          headers:
+            X-Powered-By:
+              schema:
+                type: string
+                example: Express
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+                example: http://localhost:5000
+            Vary:
+              schema:
+                type: string
+                example: Origin
+            Access-Control-Allow-Credentials:
+              schema:
+                type: boolean
+                example: 'true'
+            Content-Type:
+              schema:
+                type: string
+                example: application/json; charset=utf-8
+            Content-Length:
+              schema:
+                type: integer
+                example: '1053'
+            ETag:
+              schema:
+                type: string
+                example: W/"41d-KPsunJdo0r/TzngvgxdLmr8UQWI"
+            Date:
+              schema:
+                type: string
+                example: Wed, 21 Jan 2026 12:32:26 GMT
+            Connection:
+              schema:
+                type: string
+                example: keep-alive
+            Keep-Alive:
+              schema:
+                type: string
+                example: timeout=5
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: |-
+                {
+                    "statusCode": 200,
+                    "message": "Trip accepted successfully",
+                    "data": {
+                        "pickup": {
+                            "address": "123 Main Street, Hyderabad",
+                            "coordinates": [
+                                78.4867,
+                                17.385
+                            ]
+                        },
+                        "dropoff": {
+                            "address": "123 Medical Center Drive, Healthcare City",
+                            "coordinates": [
+                                78.4867,
+                                17.385
+                            ]
+                        },
+                        "patientSnapshot": {
+                            "userId": "6970c33999fbef280698ac47",
+                            "name": "sai krishna",
+                            "phone": "9876543210",
+                            "medicalHistory": "",
+                            "bloodGroup": "A+"
+                        },
+                        "_id": "6970c70b947a03d7c38fb0b3",
+                        "userId": "6970c33999fbef280698ac47",
+                        "ambulanceId": "6970c41399fbef280698ac59",
+                        "destinationHospitalId": "694d1fc56aa5a51171e6cffc",
+                        "status": "ACCEPTED",
+                        "timeline": [
+                            {
+                                "status": "SEARCHING",
+                                "timestamp": "2026-01-21T12:31:07.732Z",
+                                "location": [
+                                    78.4867,
+                                    17.385
+                                ],
+                                "updatedBy": "user:6970c33999fbef280698ac47",
+                                "_id": "6970c70b947a03d7c38fb0b4"
+                            },
+                            {
+                                "status": "ACCEPTED",
+                                "timestamp": "2026-01-21T12:32:26.893Z",
+                                "location": [
+                                    78.48227,
+                                    17.383
+                                ],
+                                "updatedBy": "ambulance:6970c41399fbef280698ac59",
+                                "_id": "6970c75a947a03d7c38fb0c6"
+                            }
+                        ],
+                        "createdAt": "2026-01-21T12:31:07.734Z",
+                        "updatedAt": "2026-01-21T12:32:26.894Z",
+                        "__v": 1,
+                        "acceptedAt": "2026-01-21T12:32:26.893Z"
+                    },
+                    "status": true
+                }
+  /api/v2/trip/{tripId}/status:
+    patch:
+      tags:
+        - Trip
+      summary: Update-Trip-status
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                status: ARRIVED_PICKUP
+                location:
+                  - 78.49
+                  - 17.39
+      parameters:
+        - name: tripId
+          in: path
+          schema:
+            type: string
+          required: true
+          example: 695010405bf0d5d8564d9bea
+      responses:
+        '200':
+          description: OK
+          headers:
+            X-Powered-By:
+              schema:
+                type: string
+                example: Express
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+                example: http://localhost:5000
+            Vary:
+              schema:
+                type: string
+                example: Origin
+            Access-Control-Allow-Credentials:
+              schema:
+                type: boolean
+                example: 'true'
+            Content-Type:
+              schema:
+                type: string
+                example: application/json; charset=utf-8
+            Content-Length:
+              schema:
+                type: integer
+                example: '1284'
+            ETag:
+              schema:
+                type: string
+                example: W/"504-VEE7RSBNWFR9hhjIUV41T7h+/ao"
+            Date:
+              schema:
+                type: string
+                example: Wed, 21 Jan 2026 12:33:01 GMT
+            Connection:
+              schema:
+                type: string
+                example: keep-alive
+            Keep-Alive:
+              schema:
+                type: string
+                example: timeout=5
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: |-
+                {
+                    "statusCode": 200,
+                    "message": "Trip status updated successfully",
+                    "data": {
+                        "pickup": {
+                            "address": "123 Main Street, Hyderabad",
+                            "coordinates": [
+                                78.4867,
+                                17.385
+                            ]
+                        },
+                        "dropoff": {
+                            "address": "123 Medical Center Drive, Healthcare City",
+                            "coordinates": [
+                                78.4867,
+                                17.385
+                            ]
+                        },
+                        "patientSnapshot": {
+                            "userId": "6970c33999fbef280698ac47",
+                            "name": "sai krishna",
+                            "phone": "9876543210",
+                            "medicalHistory": "",
+                            "bloodGroup": "A+"
+                        },
+                        "_id": "6970c70b947a03d7c38fb0b3",
+                        "userId": "6970c33999fbef280698ac47",
+                        "ambulanceId": "6970c41399fbef280698ac59",
+                        "destinationHospitalId": "694d1fc56aa5a51171e6cffc",
+                        "status": "ARRIVED_PICKUP",
+                        "timeline": [
+                            {
+                                "status": "SEARCHING",
+                                "timestamp": "2026-01-21T12:31:07.732Z",
+                                "location": [
+                                    78.4867,
+                                    17.385
+                                ],
+                                "updatedBy": "user:6970c33999fbef280698ac47",
+                                "_id": "6970c70b947a03d7c38fb0b4"
+                            },
+                            {
+                                "status": "ACCEPTED",
+                                "timestamp": "2026-01-21T12:32:26.893Z",
+                                "location": [
+                                    78.48227,
+                                    17.383
+                                ],
+                                "updatedBy": "ambulance:6970c41399fbef280698ac59",
+                                "_id": "6970c75a947a03d7c38fb0c6"
+                            },
+                            {
+                                "status": "ARRIVED_PICKUP",
+                                "timestamp": "2026-01-21T12:33:01.422Z",
+                                "location": [
+                                    78.49,
+                                    17.39
+                                ],
+                                "updatedBy": "ambulance:6970c41399fbef280698ac59",
+                                "_id": "6970c77d947a03d7c38fb0ce"
+                            }
+                        ],
+                        "createdAt": "2026-01-21T12:31:07.734Z",
+                        "updatedAt": "2026-01-21T12:33:01.423Z",
+                        "__v": 2,
+                        "acceptedAt": "2026-01-21T12:32:26.893Z",
+                        "arrivedAtPickup": "2026-01-21T12:33:01.422Z"
+                    },
+                    "status": true
+                }
+  /api/v2/trip/{tripId}:
+    patch:
+      tags:
+        - Trip
+      summary: get-trip
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: >-
+                "{\n  \"status\": \"ARRIVED_PICKUP\",\n  \"location\": [78.4900,
+                17.3900]\n}"
+      parameters:
+        - name: tripId
+          in: path
+          schema:
+            type: string
+          required: true
+          example: 695010405bf0d5d8564d9bea
+      responses:
+        '200':
+          description: OK
+          headers:
+            X-Powered-By:
+              schema:
+                type: string
+                example: Express
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+                example: http://localhost:5000
+            Vary:
+              schema:
+                type: string
+                example: Origin
+            Access-Control-Allow-Credentials:
+              schema:
+                type: boolean
+                example: 'true'
+            Content-Type:
+              schema:
+                type: string
+                example: application/json; charset=utf-8
+            Content-Length:
+              schema:
+                type: integer
+                example: '2281'
+            ETag:
+              schema:
+                type: string
+                example: W/"8e9-7QIlpPGM1i4P33D6cPmGlZsDu6E"
+            Date:
+              schema:
+                type: string
+                example: Wed, 21 Jan 2026 12:33:23 GMT
+            Connection:
+              schema:
+                type: string
+                example: keep-alive
+            Keep-Alive:
+              schema:
+                type: string
+                example: timeout=5
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: |-
+                {
+                    "statusCode": 200,
+                    "message": "Trip details retrieved successfully",
+                    "data": {
+                        "_id": "6970c70b947a03d7c38fb0b3",
+                        "userId": {
+                            "_id": "6970c33999fbef280698ac47",
+                            "name": "sai krishna",
+                            "email": "sai@test.com",
+                            "phone": "9876543210",
+                            "bloodGroup": "A+",
+                            "medicalHistory": null,
+                            "location": {
+                                "type": "Point",
+                                "coordinates": [
+                                    78.4867,
+                                    17.385
+                                ]
+                            },
+                            "createdAt": "2026-01-21T12:14:49.980Z",
+                            "updatedAt": "2026-01-21T12:30:26.212Z",
+                            "__v": 0
+                        },
+                        "ambulanceId": {
+                            "_id": "6970c41399fbef280698ac59",
+                            "driverName": "sai Kumar",
+                            "driverPhone": "8876543210",
+                            "vehicleNumber": "TS09AB1235",
+                            "status": "ready",
+                            "location": {
+                                "type": "Point",
+                                "coordinates": [
+                                    78.48227,
+                                    17.383
+                                ]
+                            },
+                            "createdAt": "2026-01-21T12:18:27.392Z",
+                            "updatedAt": "2026-01-21T12:32:18.299Z",
+                            "__v": 0
+                        },
+                        "destinationHospitalId": {
+                            "_id": "694d1fc56aa5a51171e6cffc",
+                            "name": "City General Hospital",
+                            "email": "contact@cityhospital.com",
+                            "phone": "+1234567890",
+                            "address": "123 Medical Center Drive, Healthcare City",
+                            "location": {
+                                "type": "Point",
+                                "coordinates": [
+                                    78.4867,
+                                    17.385
+                                ]
+                            },
+                            "inventory": {
+                                "beds": {
+                                    "total": 200,
+                                    "available": 45
+                                },
+                                "bloodStock": {
+                                    "A_positive": 12,
+                                    "A_negative": 5,
+                                    "B_positive": 8,
+                                    "B_negative": 0,
+                                    "O_positive": 15,
+                                    "O_negative": 5,
+                                    "AB_positive": 6,
+                                    "AB_negative": 2
+                                }
+                            },
+                            "createdAt": "2025-12-25T11:28:05.618Z",
+                            "updatedAt": "2026-01-15T08:48:05.600Z",
+                            "__v": 0
+                        },
+                        "status": "ARRIVED_PICKUP",
+                        "pickup": {
+                            "address": "123 Main Street, Hyderabad",
+                            "coordinates": [
+                                78.4867,
+                                17.385
+                            ]
+                        },
+                        "dropoff": {
+                            "address": "123 Medical Center Drive, Healthcare City",
+                            "coordinates": [
+                                78.4867,
+                                17.385
+                            ]
+                        },
+                        "patientSnapshot": {
+                            "userId": "6970c33999fbef280698ac47",
+                            "name": "sai krishna",
+                            "phone": "9876543210",
+                            "medicalHistory": "",
+                            "bloodGroup": "A+"
+                        },
+                        "timeline": [
+                            {
+                                "status": "SEARCHING",
+                                "timestamp": "2026-01-21T12:31:07.732Z",
+                                "location": [
+                                    78.4867,
+                                    17.385
+                                ],
+                                "updatedBy": "user:6970c33999fbef280698ac47",
+                                "_id": "6970c70b947a03d7c38fb0b4"
+                            },
+                            {
+                                "status": "ACCEPTED",
+                                "timestamp": "2026-01-21T12:32:26.893Z",
+                                "location": [
+                                    78.48227,
+                                    17.383
+                                ],
+                                "updatedBy": "ambulance:6970c41399fbef280698ac59",
+                                "_id": "6970c75a947a03d7c38fb0c6"
+                            },
+                            {
+                                "status": "ARRIVED_PICKUP",
+                                "timestamp": "2026-01-21T12:33:01.422Z",
+                                "location": [
+                                    78.49,
+                                    17.39
+                                ],
+                                "updatedBy": "ambulance:6970c41399fbef280698ac59",
+                                "_id": "6970c77d947a03d7c38fb0ce"
+                            }
+                        ],
+                        "createdAt": "2026-01-21T12:31:07.734Z",
+                        "updatedAt": "2026-01-21T12:33:01.423Z",
+                        "__v": 2,
+                        "acceptedAt": "2026-01-21T12:32:26.893Z",
+                        "arrivedAtPickup": "2026-01-21T12:33:01.422Z"
+                    },
+                    "status": true
+                }

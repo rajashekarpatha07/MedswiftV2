@@ -10,6 +10,10 @@ import cookieParser from "cookie-parser";
 import { ApiError } from "./shared/utils/ApiError.js";
 import { ApiResponse } from "./shared/utils/ApiResponce.js";
 
+//Documentation
+import swaggerUi from "swagger-ui-express";
+import YAML from "yamljs";
+import path from "path";
 //UserRoutes import
 import { userRoutes } from "./modules/user/routes/user.routes.js";
 
@@ -37,6 +41,24 @@ app.use(
 app.use(express.json({ limit: "12kb" }));
 app.use(express.urlencoded({ extended: true, limit: "12kb" }));
 app.use(cookieParser());
+
+try {
+  // Load the YAML file from the root directory
+  const swaggerDocument = YAML.load(path.resolve("./medswift_swagger.yml"));
+  
+  // Serve the docs at /docs
+  app.use(
+    "/docs",
+    swaggerUi.serve,
+    swaggerUi.setup(swaggerDocument, {
+      customSiteTitle: "MedSwift API Docs", // Custom browser title
+      customCss: ".swagger-ui .topbar { display: none }", // Optional: Hides the green Swagger header
+    })
+  );
+  console.log("📄 Swagger Docs available at /docs");
+} catch (error) {
+  console.error("❌ Failed to load Swagger API documentation:", error);
+}
 
 //UserRoutes
 app.use("/api/v2/user", userRoutes)
