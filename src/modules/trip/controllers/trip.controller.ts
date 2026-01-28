@@ -7,7 +7,7 @@ import { ApiResponse } from "../../../shared/utils/ApiResponce.js";
 import {
   createTripSchema,
   updateTripStatusSchema,
-  assignAmbulanceSchema,
+  // assignAmbulanceSchema,
 } from "../trip.dto/trip.dto.js";
 import {
   createTripRequest,

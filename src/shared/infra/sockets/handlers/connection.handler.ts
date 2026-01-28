@@ -9,19 +9,25 @@ import redis from "../../../../config/redis.js";
 const connectionHandler = async (socket: AuthenticatedSocket) => {
   const { userId, userRole } = socket;
 
-  console.log(`🔌 Client connected: ${userRole} ${userId} (socket: ${socket.id})`);
+  console.log(
+    `🔌 Client connected: ${userRole} ${userId} (socket: ${socket.id})`,
+  );
 
   // Store socket mapping in Redis for quick lookups
   try {
-    await redis.hSet("socket:mapping", socket.id, JSON.stringify({
-      userId,
-      userRole,
-      connectedAt: new Date().toISOString()
-    }));
+    await redis.hSet(
+      "socket:mapping",
+      socket.id,
+      JSON.stringify({
+        userId,
+        userRole,
+        connectedAt: new Date().toISOString(),
+      }),
+    );
 
     // Also store reverse mapping (userId -> socketId)
     await redis.set(`socket:${userRole}:${userId}`, socket.id, {
-      EX: 3600 // Expire in 1 hour
+      EX: 3600, // Expire in 1 hour
     });
   } catch (error) {
     console.error("Redis socket mapping error:", error);
@@ -33,6 +39,14 @@ const connectionHandler = async (socket: AuthenticatedSocket) => {
     console.log(`👮 Admin ${userId} joined admin-room`);
   }
 
+  if (userRole === "ambulance") {
+    socket.join("ambulance-room"); // For broadcast notifications
+    socket.join(`ambulance:${userId}`); // For direct messages
+  }
+
+  if (userRole === "user") {
+    socket.join(`user:${userId}`); // For direct messages
+  }
   // Register event handlers
   registerTripEvents(socket);
   registerLocationEvents(socket);
@@ -44,13 +58,15 @@ const connectionHandler = async (socket: AuthenticatedSocket) => {
       success: true,
       echo: data,
       serverTime: new Date().toISOString(),
-      socketId: socket.id
+      socketId: socket.id,
     });
   });
 
   // Handle disconnection
   socket.on("disconnect", async (reason) => {
-    console.log(`🔌 Client disconnected: ${userRole} ${userId} (reason: ${reason})`);
+    console.log(
+      `🔌 Client disconnected: ${userRole} ${userId} (reason: ${reason})`,
+    );
 
     // Clean up Redis mappings
     try {
@@ -62,13 +78,13 @@ const connectionHandler = async (socket: AuthenticatedSocket) => {
 
     // Notify trip participants if user was in a trip
     const rooms = Array.from(socket.rooms);
-    const tripRooms = rooms.filter(room => room.startsWith("trip:"));
-    
-    tripRooms.forEach(room => {
+    const tripRooms = rooms.filter((room) => room.startsWith("trip:"));
+
+    tripRooms.forEach((room) => {
       socket.to(room).emit("participant_disconnected", {
         userId,
         userRole,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
     });
   });
@@ -79,10 +95,8 @@ const connectionHandler = async (socket: AuthenticatedSocket) => {
     socketId: socket.id,
     userId,
     userRole,
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   });
 };
 
-export {
-    connectionHandler
-}
+export { connectionHandler };
