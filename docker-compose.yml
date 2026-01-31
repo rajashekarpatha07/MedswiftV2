@@ -1,0 +1,32 @@
+services:
+  app:
+    image: medswift-pentest:v1
+    container_name: medswift-app
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - NODE_ENV=production
+      - REDIS_URL=redis://redis:6379 
+      - MONGO_URL=mongodb://mongo:27017/medswift_db
+    depends_on:
+      - redis
+      - mongo
+    networks:
+      - pentest-net
+  redis:
+    image: redis:alpine
+    container_name: medswift_redis
+    networks:
+      - pentest-net
+
+  # MongoDB
+  mongo:
+    image: mongo:latest
+    container_name: medswift_mongo
+    networks:
+      - pentest-net
+
+networks:
+  pentest-net:

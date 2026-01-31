@@ -12,9 +12,6 @@ const StartServer = async () => {
     // Connect to MongoDB
     await ConnectDb();
 
-    // Connect to Redis
-    await redis.connect();
-
     // Create HTTP server (needed for Socket.IO)
     const httpServer = createServer(app);
 

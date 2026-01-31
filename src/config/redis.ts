@@ -10,8 +10,10 @@ redis.on("connect", () => {
   console.log("connected to redis");
 });
 
-redis.on("err", () => {
+redis.on("error", () => {
   console.log("Error in connecting to redis");
 });
+
+await redis.connect()
 
 export default redis;

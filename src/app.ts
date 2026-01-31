@@ -10,6 +10,13 @@ import cookieParser from "cookie-parser";
 import { ApiError } from "./shared/utils/ApiError.js";
 import { ApiResponse } from "./shared/utils/ApiResponce.js";
 
+//Rate Limiting 
+import rateLimit from "express-rate-limit";
+import RedisStore from "rate-limit-redis";
+import redis from "./config/redis.js";
+
+//security
+import helmet from "helmet";
 //Documentation
 import swaggerUi from "swagger-ui-express";
 import YAML from "yamljs";
@@ -31,12 +38,34 @@ import { tripRoutes } from "./modules/trip/routes/trip.routes.js";
 
 const app: Application = express();
 
+app.use(helmet())
+
+app.get("/health", (req: Request, res: Response) => {
+  res.status(200).json({ 
+    status: "UP", 
+    uptime: process.uptime(),
+    timestamp: new Date().toISOString() 
+  });
+});
+
+// Rate Limiting 
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  store: new RedisStore({
+    sendCommand: (...args: string[]) => redis.sendCommand(args),
+  }),
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 app.use(
   cors({
     origin: BASE_URL,
     credentials: true,
   })
 );
+
 
 app.use(express.json({ limit: "12kb" }));
 app.use(express.urlencoded({ extended: true, limit: "12kb" }));
@@ -55,11 +84,12 @@ try {
       customCss: ".swagger-ui .topbar { display: none }", // Optional: Hides the green Swagger header
     })
   );
-  console.log("📄 Swagger Docs available at /docs");
+  console.log("Swagger Docs available at /docs");
 } catch (error) {
-  console.error("❌ Failed to load Swagger API documentation:", error);
+  console.error("Failed to load Swagger API documentation:", error);
 }
 
+app.use("/api", limiter)
 //UserRoutes
 app.use("/api/v2/user", userRoutes)
 

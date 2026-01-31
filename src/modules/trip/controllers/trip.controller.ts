@@ -1,5 +1,3 @@
-// src/modules/trip/controllers/trip.controller.ts
-
 import type { Request, Response } from "express";
 import { asyncHandler } from "../../../shared/utils/AsyncHandler.js";
 import { ApiError } from "../../../shared/utils/ApiError.js";

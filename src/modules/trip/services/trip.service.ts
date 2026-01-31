@@ -30,16 +30,16 @@ interface UpdateTripStatusInput {
  * Helper: Calculate ETA based on distance
  * Assumes average speed of 40 km/h in city traffic
  */
-function calculateETA(distanceInMeters: number): string {
-  const distanceInKm = distanceInMeters / 1000;
-  const avgSpeedKmh = 40;
-  const timeInHours = distanceInKm / avgSpeedKmh;
-  const timeInMinutes = Math.ceil(timeInHours * 60);
-  
-  if (timeInMinutes < 1) return "Less than 1 minute";
-  if (timeInMinutes === 1) return "1 minute";
-  return `${timeInMinutes} minutes`;
-}
+// function calculateETA(distanceInMeters: number): string {
+//   const distanceInKm = distanceInMeters / 1000;
+//   const avgSpeedKmh = 40;
+//   const timeInHours = distanceInKm / avgSpeedKmh;
+//   const timeInMinutes = Math.ceil(timeInHours * 60);
+
+//   if (timeInMinutes < 1) return "Less than 1 minute";
+//   if (timeInMinutes === 1) return "1 minute";
+//   return `${timeInMinutes} minutes`;
+// }
 
 /**
  * Create a new trip request WITH AUTOMATIC AMBULANCE ASSIGNMENT
@@ -52,7 +52,7 @@ function calculateETA(distanceInMeters: number): string {
  * 7. Emit socket events to user, ambulance, and admin
  */
 const createTripRequest = async (
-  input: CreateTripInput & { userId: string }
+  input: CreateTripInput & { userId: string },
 ): Promise<ITrip> => {
   const {
     userId,
@@ -86,7 +86,7 @@ const createTripRequest = async (
   if (existingTrip) {
     throw new ApiError(
       409,
-      "You already have an active trip. Please complete or cancel it first."
+      "You already have an active trip. Please complete or cancel it first.",
     );
   }
 
@@ -104,7 +104,7 @@ const createTripRequest = async (
     mongoose.Types.ObjectId.isValid(destinationHospitalId)
   ) {
     hospital = await Hospital.findById(destinationHospitalId).select(
-      "-password -refreshToken"
+      "-password -refreshToken",
     );
     if (!hospital) {
       throw new ApiError(404, "Specified hospital not found");
@@ -188,7 +188,6 @@ const createTripRequest = async (
     });
 
     await trip.save();
-
     // 6. Populate trip data for socket emission
     const populatedTrip = await Trip.findById(trip._id)
       .populate("userId", "name phone bloodGroup")
@@ -200,7 +199,7 @@ const createTripRequest = async (
     try {
       const io = getIO();
       const distanceKm = (nearest.distance / 1000).toFixed(1);
-      const estimatedArrival = calculateETA(nearest.distance);
+      // const estimatedArrival = calculateETA(nearest.distance);
 
       // Emit to user
       io.to(`user:${userId}`).emit("ambulance_assigned", {
@@ -214,7 +213,7 @@ const createTripRequest = async (
           distance: nearest.distance,
           distanceKm,
         },
-        estimatedArrival,
+        // estimatedArrival,
         message: "Ambulance assigned successfully!",
         trip: populatedTrip,
       });
@@ -231,7 +230,7 @@ const createTripRequest = async (
           distanceKm,
           message: "New trip assigned to you!",
           trip: populatedTrip,
-        }
+        },
       );
 
       // Emit to admin room for monitoring
@@ -245,7 +244,7 @@ const createTripRequest = async (
       });
 
       console.log(
-        `✅ Auto-assigned ambulance ${ambulanceData._id} to trip ${trip._id} (Distance: ${distanceKm}km)`
+        `✅ Auto-assigned ambulance ${ambulanceData._id} to trip ${trip._id} (Distance: ${distanceKm}km)`,
       );
     } catch (socketError) {
       console.error("Socket emission error:", socketError);
@@ -257,7 +256,7 @@ const createTripRequest = async (
 
   // 8. NO AMBULANCE FOUND - Create trip with SEARCHING status
   console.warn(
-    `⚠️ EMERGENCY: No ambulances found for user ${userId} at [${lng}, ${lat}]`
+    `⚠️ EMERGENCY: No ambulances found for user ${userId} at [${lng}, ${lat}]`,
   );
 
   const trip = new Trip({
@@ -304,7 +303,7 @@ const createTripRequest = async (
     });
 
     console.log(
-      `📢 Broadcasted trip ${trip._id} to ambulance-room (no nearby ambulances found)`
+      `📢 Broadcasted trip ${trip._id} to ambulance-room (no nearby ambulances found)`,
     );
   } catch (socketError) {
     console.error("Socket emission error:", socketError);
@@ -318,7 +317,7 @@ const createTripRequest = async (
  */
 function validateStatusTransition(
   currentStatus: TripStatus,
-  newStatus: TripStatus
+  newStatus: TripStatus,
 ): void {
   const validTransitions: Record<TripStatus, TripStatus[]> = {
     SEARCHING: ["ACCEPTED", "CANCELLED"],
@@ -333,7 +332,7 @@ function validateStatusTransition(
   if (!validTransitions[currentStatus].includes(newStatus)) {
     throw new ApiError(
       400,
-      `Invalid status transition from ${currentStatus} to ${newStatus}`
+      `Invalid status transition from ${currentStatus} to ${newStatus}`,
     );
   }
 }
@@ -342,7 +341,7 @@ function validateStatusTransition(
  * Update trip status with timeline tracking AND socket events
  */
 const updateTripStatus = async (
-  input: UpdateTripStatusInput
+  input: UpdateTripStatusInput,
 ): Promise<ITrip> => {
   const { tripId, status, ambulanceId, location, updatedBy } = input;
 
@@ -406,9 +405,7 @@ const updateTripStatus = async (
       trip: populatedTrip,
     });
 
-    console.log(
-      `📡 Emitted trip_status_updated for trip ${tripId}: ${status}`
-    );
+    console.log(`📡 Emitted trip_status_updated for trip ${tripId}: ${status}`);
   } catch (socketError) {
     console.error("Socket emission error:", socketError);
   }
@@ -421,7 +418,7 @@ const updateTripStatus = async (
  */
 const assignAmbulanceToTrip = async (
   tripId: string,
-  ambulanceId: string
+  ambulanceId: string,
 ): Promise<ITrip> => {
   const trip = await Trip.findById(tripId);
   if (!trip) {
@@ -431,7 +428,7 @@ const assignAmbulanceToTrip = async (
   if (trip.status !== "SEARCHING") {
     throw new ApiError(
       400,
-      "Trip is not in SEARCHING state. Cannot assign ambulance."
+      "Trip is not in SEARCHING state. Cannot assign ambulance.",
     );
   }
 
@@ -464,7 +461,7 @@ const assignAmbulanceToTrip = async (
  */
 const cancelTrip = async (
   tripId: string,
-  cancelledBy: string
+  cancelledBy: string,
 ): Promise<ITrip> => {
   const trip = await Trip.findById(tripId);
   if (!trip) {
@@ -528,7 +525,7 @@ const getTripDetails = async (tripId: string): Promise<any> => {
  */
 const getUserTripHistory = async (
   userId: string,
-  limit: number = 10
+  limit: number = 10,
 ): Promise<ITrip[]> => {
   const trips = await Trip.find({ userId })
     .sort({ createdAt: -1 })
