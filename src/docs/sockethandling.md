@@ -1,8 +1,8 @@
 # MedSwift Socket.IO Documentation
 
-**Version:** 1.0  
-**Last Updated:** January 28, 2026  
-**Purpose:** Real-time communication for trip tracking, location updates, and emergency notifications
+**Version:** 2.0  
+**Last Updated:** February 13, 2026  
+**Source of truth:** `src/shared/infra/sockets/`
 
 ---
 
@@ -11,769 +11,682 @@
 1. [Overview](#overview)
 2. [Connection Setup](#connection-setup)
 3. [Authentication](#authentication)
-4. [Room Management](#room-management)
+4. [Room Architecture](#room-architecture)
 5. [Events Reference](#events-reference)
-   - [Outgoing Events (Client → Server)](#outgoing-events-client--server)
-   - [Incoming Events (Server → Client)](#incoming-events-server--client)
-6. [Data Structures](#data-structures)
+   - [Client → Server Events](#client--server-events)
+   - [Server → Client Events](#server--client-events)
+6. [Data Types](#data-types)
 7. [Error Handling](#error-handling)
-8. [Best Practices](#best-practices)
-9. [Code Examples](#code-examples)
+8. [Integration Examples](#integration-examples)
 
 ---
 
 ## Overview
 
-The MedSwift Socket.IO system enables real-time bidirectional communication between users, ambulances, and admins during emergency medical trips. It handles:
+MedSwift uses **Socket.IO** for real-time communication between patients, ambulances, and the admin dashboard. The socket layer handles:
 
-- Real-time location tracking
-- Trip room management
-- Emergency SOS alerts
-- Participant notifications
-- Connection status monitoring
+- **Trip room management** — joining/leaving trip-specific rooms for scoped event delivery
+- **Live GPS tracking** — streaming ambulance and patient locations during active trips
+- **Emergency SOS** — instant broadcast to trip participants and admin
+- **Connection monitoring** — automatic cleanup and participant disconnect notifications
 
-**Server Configuration:**
-- **Transports:** WebSocket (preferred), Polling (fallback)
-- **Ping Timeout:** 60 seconds
-- **Ping Interval:** 25 seconds
-- **Max Message Size:** 100 MB
+### Architecture
+
+```mermaid
+graph LR
+    subgraph Socket.IO Server
+        AUTH[Auth Middleware<br>JWT Verification]
+        CONN[Connection Handler]
+        TRIP[Trip Events]
+        LOC[Location Events]
+    end
+
+    CLIENT[Client] -->|handshake + JWT| AUTH
+    AUTH -->|authenticated| CONN
+    CONN --> TRIP
+    CONN --> LOC
+    CONN -->|auto-join| ROOMS[Role Rooms]
+```
+
+**Source files:**
+
+| File | Purpose |
+|------|---------|
+| [`socket.config.ts`](file:///home/raj/Desktop/Upgrades/Medswift/src/shared/infra/sockets/socket.config.ts) | Socket.IO server initialization, CORS, helper emitters |
+| [`socket.middleware.ts`](file:///home/raj/Desktop/Upgrades/Medswift/src/shared/infra/sockets/socket.middleware/socket.middleware.ts) | JWT authentication middleware |
+| [`connection.handler.ts`](file:///home/raj/Desktop/Upgrades/Medswift/src/shared/infra/sockets/handlers/connection.handler.ts) | Connection setup, Redis mapping, room joins, disconnect cleanup |
+| [`trip.events.ts`](file:///home/raj/Desktop/Upgrades/Medswift/src/shared/infra/sockets/events/trip.events.ts) | Trip room join/leave/participants events |
+| [`location.events.ts`](file:///home/raj/Desktop/Upgrades/Medswift/src/shared/infra/sockets/events/location.events.ts) | Location sync, updates, queries, and SOS |
 
 ---
 
 ## Connection Setup
 
-### Initialize Socket Connection
+### Server Configuration
 
-```javascript
-import io from 'socket.io-client';
-
-const SERVER_URL = 'http://your-server-url'; // Replace with actual server URL
-
-const socket = io(SERVER_URL, {
-  auth: {
-    token: 'YOUR_JWT_ACCESS_TOKEN' // Required for authentication
+```typescript
+// From socket.config.ts
+const io = new SocketServer(httpServer, {
+  cors: {
+    origin: [FRONTEND_URL, "http://localhost:5173/"],
+    credentials: true,
+    methods: ["GET", "POST"]
   },
-  transports: ['websocket', 'polling'], // Prefer WebSocket
-  reconnection: true,
-  reconnectionDelay: 1000,
-  reconnectionAttempts: 5
+  pingTimeout: 60000,     // 60s — time before connection considered lost
+  pingInterval: 25000,    // 25s — ping frequency
+  upgradeTimeout: 30000,  // 30s — WebSocket upgrade timeout
+  maxHttpBufferSize: 1e8, // 100 MB max message size
+  transports: ["websocket", "polling"],
+  allowEIO3: true,        // Support Engine.IO v3 clients
 });
 ```
 
-### Connection Event Listeners
+### Client Connection
 
 ```javascript
-socket.on('connect', () => {
-  console.log('Connected to server:', socket.id);
+import { io } from "socket.io-client";
+
+const socket = io("http://localhost:5000", {
+  auth: {
+    token: "<your-jwt-access-token>"
+  },
+  transports: ["websocket", "polling"],
 });
 
-socket.on('disconnect', (reason) => {
-  console.log('Disconnected:', reason);
-});
-
-socket.on('connect_error', (error) => {
-  console.error('Connection error:', error.message);
+socket.on("connect", () => {
+  console.log("Connected:", socket.id);
 });
 ```
+
+> [!IMPORTANT]
+> The token must be a valid **access token** (JWT) obtained from any login endpoint (`/api/v2/user/login`, `/api/v2/ambulance/login`, or `/api/v2/admin/login`). The token's `role` field determines which rooms you auto-join.
 
 ---
 
 ## Authentication
 
-### JWT Token Requirements
+The socket middleware (`socket.middleware.ts`) runs on every connection attempt:
 
-All socket connections **must** include a valid JWT access token during the handshake.
+1. **Extract token** from `socket.handshake.auth.token` or `socket.handshake.query.token`
+2. **Verify JWT** using `ACCESS_TOKEN_SECRET` — reject with `"Authentication error: Invalid token"` if invalid
+3. **Fetch user document** from MongoDB based on `decoded.role`:
+   - `"user"` → `User.findById()`
+   - `"ambulance"` → `Ambulance.findById()`
+   - `"admin"` → `Admin.findById()`
+4. **Attach to socket** — sets `socket.userId`, `socket.userRole`, and `socket.userData`
 
-**Token Format:**
-```javascript
-{
-  id: "userId",           // User/Ambulance/Admin ID
-  role: "user",          // "user" | "ambulance" | "admin"
-  iat: 1768997690,       // Issued at timestamp
-  exp: 1768998590        // Expiration timestamp
-}
-```
+### Supported Roles
 
-**Authentication Methods:**
+| Role | Model | Login Endpoint |
+|------|-------|----------------|
+| `user` | User | `POST /api/v2/user/login` |
+| `ambulance` | Ambulance | `POST /api/v2/ambulance/login` |
+| `admin` | Admin | `POST /api/v2/admin/login` |
 
-1. **Via auth object (Recommended):**
-```javascript
-const socket = io(SERVER_URL, {
-  auth: { token: accessToken }
-});
-```
-
-2. **Via query parameters:**
-```javascript
-const socket = io(SERVER_URL, {
-  query: { token: accessToken }
-});
-```
+> [!NOTE]
+> Hospitals do **not** connect via Socket.IO. Hospital data is accessed through REST APIs only.
 
 ### Authentication Errors
 
-If authentication fails, the connection will be rejected with one of these errors:
-- `"Authentication error: No token provided"`
-- `"Authentication error: Invalid token"`
-- `"Authentication error: User not found"`
-- `"Authentication error: Invalid role"`
+| Error | Cause |
+|-------|-------|
+| `"Authentication error: No token provided"` | Missing token in handshake |
+| `"Authentication error: Invalid token"` | Expired or malformed JWT |
+| `"Authentication error: Invalid role"` | Token role not recognized |
+| `"Authentication error: User not found"` | Token valid but user deleted |
 
 ---
 
-## Room Management
+## Room Architecture
 
-### Automatic Room Assignment
+On successful connection, clients are automatically joined to rooms based on their role:
 
-Upon successful connection, users are automatically assigned to specific rooms based on their role:
+```mermaid
+graph TD
+    CONN[Connection] --> CHECK{Role?}
+    CHECK -->|admin| AR[admin-room]
+    CHECK -->|ambulance| ABR[ambulance-room<br>+ ambulance:{id}]
+    CHECK -->|user| UR[user:{id}]
+    
+    JOIN[join_trip event] --> TR[trip:{tripId}]
+```
 
-| Role | Rooms Joined |
-|------|--------------|
-| **User** | `user:{userId}` |
-| **Ambulance** | `ambulance:{ambulanceId}`, `ambulance-room` |
-| **Admin** | `admin-room` |
+| Room | Who Joins | Purpose | Auto-Joined? |
+|------|-----------|---------|--------------|
+| `admin-room` | All admins | Receive system-wide alerts (SOS, new trips) | ✅ Yes |
+| `ambulance-room` | All ambulances | Broadcast notifications to all ambulances | ✅ Yes |
+| `ambulance:{id}` | Specific ambulance | Direct messages to one ambulance | ✅ Yes |
+| `user:{id}` | Specific user | Direct messages to one user | ✅ Yes |
+| `trip:{tripId}` | Trip participants | Scoped trip events (location, status) | ❌ Manual via `join_trip` |
 
-### Trip Rooms
+### Redis Socket Mapping
 
-Trip-specific rooms follow the format: `trip:{tripId}`
+On connection, two Redis entries are created:
 
-Participants must explicitly join trip rooms using the `join_trip` event.
+```
+HSET socket:mapping {socketId} → { userId, userRole, connectedAt }
+SET  socket:{role}:{userId}    → socketId  (TTL: 1 hour)
+```
+
+Both are cleaned up on disconnect.
 
 ---
 
 ## Events Reference
 
-### Outgoing Events (Client → Server)
+### Client → Server Events
 
-These are events your frontend should **emit** to the server.
+Every client-emitted event supports an **acknowledgment callback** with this shape:
+
+```typescript
+interface CallbackResponse {
+  success: boolean;
+  message: string;
+  [key: string]: any;  // Additional data specific to the event
+}
+```
 
 ---
 
-#### 1. `join_trip`
+#### `join_trip`
 
-Join a specific trip room to receive real-time updates.
+Join a trip room to receive real-time updates for that trip.
 
-**When to Use:**
-- When user starts/views a trip
-- When ambulance is assigned to a trip
-- When admin monitors a trip
+**Source:** `trip.events.ts`  
+**Who can emit:** `user`, `ambulance`, `admin`
 
-**Payload:**
 ```typescript
-{
-  tripId: string  // MongoDB ObjectId of the trip
-}
-```
-
-**Callback Response:**
-```typescript
-{
-  success: boolean,
-  message: string,
-  trip?: {
-    _id: string,
-    userId: {
-      _id: string,
-      name: string,
-      phone: string
-    },
-    ambulanceId?: {
-      _id: string,
-      driverName: string,
-      vehicleNumber: string
-    },
-    status: string,
-    // ... other trip fields
-  }
-}
-```
-
-**Example:**
-```javascript
-socket.emit('join_trip', { tripId: '507f1f77bcf86cd799439011' }, (response) => {
+socket.emit("join_trip", { tripId: "abc123" }, (response) => {
   if (response.success) {
-    console.log('Joined trip:', response.trip);
-  } else {
-    console.error('Error:', response.message);
+    console.log("Joined trip:", response.trip);
   }
 });
 ```
 
-**Possible Errors:**
-- `"Trip ID is required"`
-- `"Trip not found"`
-- `"Unauthorized: You are not part of this trip"`
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `tripId` | `string` | Yes | MongoDB ObjectId of the trip |
+
+**Authorization:** Only trip participants (the trip's user, assigned ambulance) or admins can join.
+
+**Callback response on success:**
+
+```json
+{
+  "success": true,
+  "message": "Successfully joined trip",
+  "trip": {
+    "_id": "...",
+    "userId": { "_id": "...", "name": "...", "phone": "..." },
+    "ambulanceId": { "_id": "...", "driverName": "...", "vehicleNumber": "..." },
+    "status": "ACCEPTED",
+    "pickupLocation": { ... },
+    "hospitalLocation": { ... }
+  }
+}
+```
+
+**Side effects:**
+- Socket joins `trip:{tripId}` room
+- Socket ID added to Redis set `trip_participants:{tripId}`
+- `participant_joined` event emitted to other room members
 
 ---
 
-#### 2. `leave_trip`
+#### `leave_trip`
 
-Leave a trip room when no longer tracking it.
+Leave a trip room.
 
-**When to Use:**
-- When user closes trip view
-- When trip is completed
-- When navigating away from trip screen
+**Source:** `trip.events.ts`  
+**Who can emit:** Any authenticated client
 
-**Payload:**
 ```typescript
-{
-  tripId: string
-}
-```
-
-**Callback Response:**
-```typescript
-{
-  success: boolean,
-  message: string
-}
-```
-
-**Example:**
-```javascript
-socket.emit('leave_trip', { tripId: '507f1f77bcf86cd799439011' }, (response) => {
-  if (response.success) {
-    console.log('Left trip successfully');
-  }
+socket.emit("leave_trip", { tripId: "abc123" }, (response) => {
+  console.log(response.message);
 });
 ```
 
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `tripId` | `string` | Yes | Trip ID to leave |
+
+**Side effects:**
+- Socket leaves `trip:{tripId}` room
+- Socket ID removed from Redis set `trip_participants:{tripId}`
+- `participant_left` event emitted to remaining room members
+
 ---
 
-#### 3. `location_update`
+#### `get_trip_participants`
 
-Send real-time location updates during a trip.
+Query who is currently connected to a trip room.
 
-**When to Use:**
-- Continuously during active trip (recommended: every 3-5 seconds)
-- When location changes significantly
-- **Only** users and ambulances can send location updates
+**Source:** `trip.events.ts`  
+**Who can emit:** Any authenticated client
 
-**Payload:**
 ```typescript
+socket.emit("get_trip_participants", { tripId: "abc123" }, (response) => {
+  console.log("Participants:", response.participants);
+  console.log("Count:", response.count);
+});
+```
+
+**Callback response:**
+
+```json
 {
-  tripId: string,
+  "success": true,
+  "participants": [
+    { "userId": "...", "userRole": "user", "connectedAt": "2026-02-13T..." },
+    { "userId": "...", "userRole": "ambulance", "connectedAt": "2026-02-13T..." }
+  ],
+  "count": 2
+}
+```
+
+---
+
+#### `sync_initial_location`
+
+Sync ambulance's current GPS location to the system on connect. **Ambulances MUST emit this immediately after connecting** to be discoverable in geo searches.
+
+**Source:** `location.events.ts`  
+**Who can emit:** `ambulance` only
+
+```typescript
+socket.emit("sync_initial_location", {
   location: {
-    latitude: number,   // e.g., 17.3850
-    longitude: number,  // e.g., 78.4867
-    accuracy?: number,  // Optional: accuracy in meters
-    altitude?: number,  // Optional: altitude in meters
-    speed?: number      // Optional: speed in m/s
+    latitude: 12.9716,
+    longitude: 77.5946
   }
-}
-```
-
-**Callback Response:**
-```typescript
-{
-  success: boolean,
-  message: string
-}
-```
-
-**Example:**
-```javascript
-// Using browser geolocation API
-navigator.geolocation.watchPosition((position) => {
-  socket.emit('location_update', {
-    tripId: currentTripId,
-    location: {
-      latitude: position.coords.latitude,
-      longitude: position.coords.longitude,
-      accuracy: position.coords.accuracy,
-      speed: position.coords.speed
-    }
-  }, (response) => {
-    if (!response.success) {
-      console.error('Location update failed:', response.message);
-    }
-  });
-}, (error) => {
-  console.error('Geolocation error:', error);
-}, {
-  enableHighAccuracy: true,
-  maximumAge: 0,
-  timeout: 5000
-});
-```
-
-**Possible Errors:**
-- `"Invalid payload"` - Missing required fields
-- `"Trip not found"`
-- `"Unauthorized: Only trip participants can send location"`
-
-**Important Notes:**
-- Location data is stored in Redis with 5-minute TTL
-- Ambulance locations are also indexed in geo-spatial index for distance calculations
-- Location updates are broadcast to all trip participants (except sender)
-
----
-
-#### 4. `get_location`
-
-Request the current location of another participant in the trip.
-
-**When to Use:**
-- To get patient location (ambulance requesting user location)
-- To get ambulance location (user requesting ambulance location)
-- For initial location when joining a trip
-
-**Payload:**
-```typescript
-{
-  tripId: string,
-  targetRole: "user" | "ambulance"  // Role of participant whose location you want
-}
-```
-
-**Callback Response:**
-```typescript
-{
-  success: boolean,
-  location?: {
-    latitude: number,
-    longitude: number,
-    userId: string,
-    userRole: string,
-    timestamp: string,  // ISO 8601 format
-    accuracy?: number,
-    altitude?: number,
-    speed?: number
-  },
-  message?: string,
-  note?: string  // "Using fallback location" if exact key not found
-}
-```
-
-**Example:**
-```javascript
-// Ambulance getting patient location
-socket.emit('get_location', {
-  tripId: '507f1f77bcf86cd799439011',
-  targetRole: 'user'
 }, (response) => {
-  if (response.success) {
-    console.log('Patient location:', response.location);
-    updateMapMarker(response.location);
-  } else {
-    console.error('Location not available:', response.message);
-  }
+  console.log(response.message);
 });
 ```
 
-**Possible Errors:**
-- `"Invalid payload"`
-- `"Trip not found"`
-- `"Unauthorized"` - Requester is not part of the trip
-- `"Location not available for {role}. Make sure they've sent location first."`
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `location.latitude` | `number` | Yes | Latitude (-90 to 90) |
+| `location.longitude` | `number` | Yes | Longitude (-180 to 180) |
+
+**What happens:**
+1. Updates ambulance location in **MongoDB** (GeoJSON Point format)
+2. If ambulance status is `"ready"` → adds to **Redis geo index** (`ambulance_locations`) making them findable
+3. If ambulance status is NOT `"ready"` → **removes** from Redis geo index (not available for dispatch)
+
+> [!CAUTION]
+> If an ambulance doesn't emit this event after connecting, they will not appear in nearby ambulance searches even if their status is `"ready"`. Their Redis geo entry may be stale or missing.
 
 ---
 
-#### 5. `emergency_sos`
+#### `location_update`
 
-Trigger an emergency SOS alert to all trip participants and admins.
+Stream real-time GPS location during an active trip.
 
-**When to Use:**
-- Medical emergency
-- Ambulance breakdown
-- Safety concerns
-- Any urgent situation requiring immediate attention
+**Source:** `location.events.ts`  
+**Who can emit:** `user`, `ambulance` (trip participants only)
 
-**Payload:**
 ```typescript
-{
-  tripId: string,
-  message?: string  // Optional custom message
-}
-```
-
-**Callback Response:**
-```typescript
-{
-  success: boolean,
-  message: string
-}
-```
-
-**Example:**
-```javascript
-// Trigger SOS
-socket.emit('emergency_sos', {
-  tripId: currentTripId,
-  message: 'Patient condition critical!'
-}, (response) => {
-  if (response.success) {
-    console.log('SOS sent successfully');
-    showAlert('Emergency alert sent to all participants');
-  }
-});
-```
-
-**Broadcast Behavior:**
-- Sent to all participants in the trip room
-- Sent to all admins in admin-room
-- Includes sender's userId, userRole, and timestamp
-
----
-
-#### 6. `get_trip_participants`
-
-Get a list of all currently connected participants in a trip.
-
-**When to Use:**
-- To check who is actively connected
-- To display online status indicators
-- For monitoring active connections
-
-**Payload:**
-```typescript
-{
-  tripId: string
-}
-```
-
-**Callback Response:**
-```typescript
-{
-  success: boolean,
-  participants?: Array<{
-    userId: string,
-    userRole: "user" | "ambulance" | "admin",
-    connectedAt: string  // ISO 8601 timestamp
-  }>,
-  count?: number,
-  message?: string
-}
-```
-
-**Example:**
-```javascript
-socket.emit('get_trip_participants', {
-  tripId: '507f1f77bcf86cd799439011'
-}, (response) => {
-  if (response.success) {
-    console.log(`${response.count} participants online:`, response.participants);
-    updateOnlineIndicators(response.participants);
-  }
-});
-```
-
----
-
-#### 7. `echo_test`
-
-Debug endpoint to test socket connectivity.
-
-**Payload:**
-```typescript
-any  // Any data you want echoed back
-```
-
-**Callback Response:**
-```typescript
-{
-  success: true,
-  echo: any,  // Your original data
-  serverTime: string,  // ISO 8601 timestamp
-  socketId: string
-}
-```
-
-**Example:**
-```javascript
-socket.emit('echo_test', { test: 'ping' }, (response) => {
-  console.log('Server responded:', response);
-  console.log('Latency:', Date.now() - new Date(response.serverTime).getTime());
-});
-```
-
----
-
-### Incoming Events (Server → Client)
-
-These are events your frontend should **listen** for from the server.
-
----
-
-#### 1. `connected`
-
-Emitted immediately after successful authentication and connection.
-
-**When Received:**
-- Right after socket connects and authenticates
-
-**Payload:**
-```typescript
-{
-  message: "Successfully connected to MedSwift",
-  socketId: string,
-  userId: string,
-  userRole: "user" | "ambulance" | "admin",
-  timestamp: string  // ISO 8601
-}
-```
-
-**Example:**
-```javascript
-socket.on('connected', (data) => {
-  console.log('Welcome message:', data.message);
-  console.log('Your socket ID:', data.socketId);
-  console.log('Logged in as:', data.userRole);
-  
-  // Store socket ID for debugging
-  localStorage.setItem('socketId', data.socketId);
-});
-```
-
-**UI Action:**
-- Show "Connected" indicator
-- Display user role badge
-- Enable real-time features
-
----
-
-#### 2. `participant_joined`
-
-Emitted when another participant joins the trip room.
-
-**When Received:**
-- When user/ambulance/admin joins a trip you're already in
-
-**Payload:**
-```typescript
-{
-  userId: string,
-  userRole: "user" | "ambulance" | "admin",
-  socketId: string,
-  timestamp: string
-}
-```
-
-**Example:**
-```javascript
-socket.on('participant_joined', (data) => {
-  console.log(`${data.userRole} joined the trip`);
-  
-  // Update UI
-  if (data.userRole === 'ambulance') {
-    showNotification('Ambulance has joined the trip!');
-    enableTrackingFeatures();
-  }
-  
-  // Add to participants list
-  addParticipantToUI(data);
-});
-```
-
-**UI Actions:**
-- Show notification: "Ambulance driver joined"
-- Update online participants count
-- Enable ambulance tracking if ambulance joined
-
----
-
-#### 3. `participant_left`
-
-Emitted when a participant leaves the trip room.
-
-**When Received:**
-- When someone explicitly calls `leave_trip`
-
-**Payload:**
-```typescript
-{
-  userId: string,
-  userRole: "user" | "ambulance" | "admin",
-  socketId: string,
-  timestamp: string
-}
-```
-
-**Example:**
-```javascript
-socket.on('participant_left', (data) => {
-  console.log(`${data.userRole} left the trip`);
-  
-  // Update UI
-  removeParticipantFromUI(data.userId);
-  
-  if (data.userRole === 'ambulance') {
-    showWarning('Ambulance driver disconnected from trip');
-  }
-});
-```
-
----
-
-#### 4. `participant_disconnected`
-
-Emitted when a participant's socket disconnects (network loss, closed app, etc.).
-
-**When Received:**
-- When someone's socket disconnects unexpectedly
-- Not triggered by explicit `leave_trip`
-
-**Payload:**
-```typescript
-{
-  userId: string,
-  userRole: "user" | "ambulance" | "admin",
-  timestamp: string
-}
-```
-
-**Example:**
-```javascript
-socket.on('participant_disconnected', (data) => {
-  console.log(`${data.userRole} disconnected`);
-  
-  // Update UI
-  markParticipantOffline(data.userId);
-  
-  if (data.userRole === 'ambulance') {
-    showWarning('Ambulance connection lost. Trying to reconnect...');
-  }
-});
-```
-
-**UI Actions:**
-- Show "offline" indicator
-- Display reconnection message
-- Maintain last known location
-
----
-
-#### 5. `location_updated`
-
-Emitted when any participant sends a location update.
-
-**When Received:**
-- Every time another participant in your trip sends `location_update`
-- You will NOT receive your own location updates
-
-**Payload:**
-```typescript
-{
-  userId: string,
-  userRole: "user" | "ambulance" | "admin",
+socket.emit("location_update", {
+  tripId: "abc123",
   location: {
-    latitude: number,
-    longitude: number,
-    accuracy?: number,
-    altitude?: number,
-    speed?: number
-  },
-  timestamp: string
-}
-```
-
-**Example:**
-```javascript
-socket.on('location_updated', (data) => {
-  console.log(`Location update from ${data.userRole}:`, data.location);
-  
-  // Update map marker
-  if (data.userRole === 'ambulance') {
-    updateAmbulanceMarker(data.location);
-    calculateETA(data.location);
-  } else if (data.userRole === 'user') {
-    updatePatientMarker(data.location);
+    latitude: 12.9716,
+    longitude: 77.5946,
+    accuracy: 10,     // optional, meters
+    heading: 45,      // optional, degrees
+    speed: 12.5       // optional, m/s
   }
-  
-  // Update distance/ETA displays
-  updateDistanceDisplay(data.location);
+}, (response) => {
+  console.log(response.message);
 });
 ```
 
-**UI Actions:**
-- Update map marker position
-- Recalculate distance/ETA
-- Update location timestamp
-- Draw route if available
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `tripId` | `string` | Yes | Active trip ID |
+| `location.latitude` | `number` | Yes | Current latitude |
+| `location.longitude` | `number` | Yes | Current longitude |
+| `location.accuracy` | `number` | No | GPS accuracy in meters |
+| `location.heading` | `number` | No | Direction in degrees (0-360) |
+| `location.speed` | `number` | No | Speed in m/s |
 
-**Important:**
-- High frequency event (every 3-5 seconds)
-- Optimize UI updates to prevent performance issues
-- Consider debouncing UI updates if needed
+**What happens:**
+1. Verifies trip exists and emitter is a participant
+2. Stores location in **Redis** with key `location:{role}:{tripId}` (TTL: 5 minutes)
+3. If ambulance, also updates Redis geo index `ambulance_locations`
+4. Broadcasts `location_updated` to other members in `trip:{tripId}` room
 
 ---
 
-#### 6. `emergency_sos`
+#### `get_location`
 
-Emitted when anyone in the trip triggers an SOS alert.
+Fetch the latest known location of a participant in a trip.
 
-**When Received:**
-- When any participant calls `emergency_sos` event
-- Admins receive all SOS alerts from all trips
+**Source:** `location.events.ts`  
+**Who can emit:** `user`, `ambulance`, `admin` (authorized trip members)
 
-**Payload:**
+```typescript
+socket.emit("get_location", {
+  tripId: "abc123",
+  targetRole: "ambulance"
+}, (response) => {
+  if (response.success) {
+    console.log("Location:", response.location);
+  }
+});
+```
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `tripId` | `string` | Yes | Trip ID |
+| `targetRole` | `"user" \| "ambulance"` | Yes | Whose location to fetch |
+
+**Callback response:**
+
+```json
+{
+  "success": true,
+  "location": {
+    "latitude": 12.9716,
+    "longitude": 77.5946,
+    "accuracy": 10,
+    "userId": "...",
+    "userRole": "ambulance",
+    "timestamp": "2026-02-13T10:30:00.000Z"
+  }
+}
+```
+
+> [!NOTE]
+> If the exact `location:{targetRole}:{tripId}` key doesn't exist, the system will fallback to any available `location:*:{tripId}` key.
+
+---
+
+#### `emergency_sos`
+
+Trigger an emergency SOS alert that broadcasts to the trip room AND admin room.
+
+**Source:** `location.events.ts`  
+**Who can emit:** Any authenticated client in a trip
+
+```typescript
+socket.emit("emergency_sos", {
+  tripId: "abc123",
+  message: "Patient condition deteriorating rapidly"  // optional
+}, (response) => {
+  console.log(response.message);
+});
+```
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `tripId` | `string` | Yes | Trip ID |
+| `message` | `string` | No | Custom SOS message (default: "Emergency SOS triggered!") |
+
+**Broadcast targets:**
+- `trip:{tripId}` room — all trip participants
+- `admin-room` — all connected admins
+
+---
+
+#### `echo_test`
+
+Simple echo for debugging/testing connectivity.
+
+**Source:** `connection.handler.ts`  
+**Who can emit:** Any authenticated client
+
+```typescript
+socket.emit("echo_test", { hello: "world" }, (response) => {
+  console.log(response.echo);       // { hello: "world" }
+  console.log(response.serverTime); // ISO timestamp
+  console.log(response.socketId);   // Your socket ID
+});
+```
+
+---
+
+### Server → Client Events
+
+These events are emitted **by the server** and should be listened to with `socket.on()`.
+
+---
+
+#### `connected`
+
+Emitted immediately after successful authentication and connection setup.
+
+**Source:** `connection.handler.ts`
+
+```typescript
+socket.on("connected", (data) => {
+  console.log(data.message);   // "Successfully connected to MedSwift"
+  console.log(data.socketId);  // Your assigned socket ID
+  console.log(data.userId);    // Your user ID
+  console.log(data.userRole);  // "user" | "ambulance" | "admin"
+  console.log(data.timestamp); // ISO string
+});
+```
+
+---
+
+#### `participant_joined`
+
+Someone joined a trip room you're in.
+
+**Source:** `trip.events.ts`
+
+```typescript
+socket.on("participant_joined", (data) => {
+  console.log(`${data.userRole} ${data.userId} joined`);
+  // data.socketId, data.timestamp also available
+});
+```
+
+---
+
+#### `participant_left`
+
+Someone left a trip room you're in.
+
+**Source:** `trip.events.ts`
+
+```typescript
+socket.on("participant_left", (data) => {
+  console.log(`${data.userRole} ${data.userId} left`);
+});
+```
+
+---
+
+#### `participant_disconnected`
+
+Someone in your trip room disconnected (closed app, lost connection, etc.).
+
+**Source:** `connection.handler.ts`
+
+```typescript
+socket.on("participant_disconnected", (data) => {
+  console.log(`${data.userRole} ${data.userId} disconnected`);
+  // data.timestamp
+});
+```
+
+> [!NOTE]
+> This fires for any trip room the disconnected socket was in. Different from `participant_left` which is intentional.
+
+---
+
+#### `location_updated`
+
+Real-time location broadcast from another participant in your trip room.
+
+**Source:** `location.events.ts`
+
+```typescript
+socket.on("location_updated", (data) => {
+  console.log(`${data.userRole} location:`, data.location);
+  // data.userId, data.userRole, data.location, data.timestamp
+});
+```
+
+**Payload shape:**
+
 ```typescript
 {
-  tripId: string,
-  userId: string,
-  userRole: "user" | "ambulance" | "admin",
-  message: string,  // e.g., "Emergency SOS triggered!" or custom message
-  timestamp: string
+  userId: string;
+  userRole: "user" | "ambulance";
+  location: {
+    latitude: number;
+    longitude: number;
+    accuracy?: number;
+    heading?: number;
+    speed?: number;
+  };
+  timestamp: string;  // ISO 8601
 }
 ```
 
-**Example:**
-```javascript
-socket.on('emergency_sos', (data) => {
-  console.log('🚨 EMERGENCY SOS!', data);
-  
-  // Show urgent alert
-  showUrgentAlert({
-    title: '🚨 EMERGENCY SOS',
-    message: data.message,
-    from: data.userRole,
-    time: data.timestamp
-  });
-  
-  // Play alert sound
-  playSOSSound();
-  
-  // Trigger vibration
-  if ('vibrate' in navigator) {
-    navigator.vibrate([200, 100, 200, 100, 200]);
-  }
-  
-  // Show in logs
-  addSOSToTripLog(data);
+---
+
+#### `emergency_sos` (incoming)
+
+SOS alert received in your trip room or admin room.
+
+**Source:** `location.events.ts`
+
+```typescript
+socket.on("emergency_sos", (data) => {
+  alert(`🚨 SOS from ${data.userRole}: ${data.message}`);
+  // data.tripId, data.userId, data.userRole, data.message, data.timestamp
 });
 ```
 
-**UI Actions:**
-- Show full-screen alert modal
-- Play urgent notification sound
-- Trigger device vibration
-- Send push notification if app in background
-- Log SOS event prominently
-- For ambulance: Show "Call 911" button
-- For user: Show "Patient needs help" indicator
+---
 
-**Critical:**
-- This is the highest priority notification
-- Must not be missed or dismissed easily
-- Should persist until acknowledged
+#### `ambulance_assigned`
+
+Emitted to the **user** who requested the trip when an ambulance is auto-assigned. Sent to `user:{userId}` room.
+
+**Source:** `trip.service.ts`
+
+```typescript
+socket.on("ambulance_assigned", (data) => {
+  console.log("Ambulance assigned!", data.ambulance);
+  // data.tripId, data.ambulance (id, driverName, vehicleNumber, location, distance),
+  // data.trip (full populated trip object)
+});
+```
 
 ---
 
-## Data Structures
+#### `new_trip_assigned`
+
+Emitted directly to the **assigned ambulance** when they are matched to a trip. Sent to `ambulance:{ambulanceId}` room.
+
+**Source:** `trip.service.ts`
+
+```typescript
+// Ambulance only
+socket.on("new_trip_assigned", (data) => {
+  console.log("Assigned to trip:", data.tripId);
+  // data.tripId, data.pickup, data.dropoff, data.patientSnapshot,
+  // data.distance, data.distanceKm, data.trip (full populated object)
+});
+```
+
+---
+
+#### `trip_status_updated`
+
+Emitted when a trip's status changes. Sent to `trip:{tripId}` room.
+
+**Source:** `trip.service.ts`
+
+```typescript
+socket.on("trip_status_updated", (data) => {
+  console.log("New status:", data.trip.status);
+  // data.tripId, data.trip (full object), data.previousStatus, data.newStatus
+});
+```
+
+---
+
+#### `trip_cancelled`
+
+Emitted when a trip is cancelled.
+
+**Source:** `trip.service.ts` → `emitToTrip()`
+
+```typescript
+socket.on("trip_cancelled", (data) => {
+  console.log("Trip cancelled:", data.trip._id);
+});
+```
+
+---
+
+#### `new_trip_request`
+
+Emitted to the **ambulance-room** when a trip has status `SEARCHING` (no ambulance was auto-assigned). All connected ambulances receive this so they can manually accept.
+
+**Source:** `trip.service.ts` → emitted to `ambulance-room`
+
+```typescript
+// All ambulances
+socket.on("new_trip_request", (data) => {
+  console.log("New trip available:", data.tripId);
+  // data._id, data.tripId, data.pickup, data.patientSnapshot, data.timestamp
+});
+```
+
+---
+
+#### `trip_auto_assigned`
+
+Emitted to the **admin-room** when the auto-dispatch system successfully assigns an ambulance. For admin monitoring.
+
+**Source:** `trip.service.ts` → emitted to `admin-room`
+
+```typescript
+// Admin only
+socket.on("trip_auto_assigned", (data) => {
+  console.log(`Trip ${data.tripId} auto-assigned to ambulance ${data.ambulanceId}`);
+  // data.tripId, data.userId, data.ambulanceId, data.distance, data.distanceKm, data.timestamp
+});
+```
+
+---
+
+## Data Types
+
+### Callback Response
+
+All client-emitted events with callbacks follow this structure:
+
+```typescript
+interface CallbackResponse {
+  success: boolean;
+  message: string;
+  [key: string]: any;
+}
+```
 
 ### Location Object
 
 ```typescript
-interface Location {
-  latitude: number;      // Required: -90 to 90
-  longitude: number;     // Required: -180 to 180
-  accuracy?: number;     // Optional: meters
-  altitude?: number;     // Optional: meters above sea level
-  speed?: number;        // Optional: meters per second
+interface LocationPayload {
+  latitude: number;     // -90 to 90
+  longitude: number;    // -180 to 180
+  accuracy?: number;    // meters
+  heading?: number;     // degrees (0-360)
+  speed?: number;       // m/s
 }
 ```
 
-### Trip Object (Partial)
+### Trip Object (populated)
+
+The trip object returned in `join_trip` and emitted in trip events:
 
 ```typescript
 interface Trip {
@@ -782,38 +695,44 @@ interface Trip {
     _id: string;
     name: string;
     phone: string;
+    bloodGroup: string;
   };
-  ambulanceId?: {
+  ambulanceId: {
     _id: string;
     driverName: string;
     vehicleNumber: string;
-  };
-  hospitalId?: string;
-  status: "pending" | "accepted" | "in_progress" | "completed" | "cancelled";
-  pickupLocation: {
-    type: "Point";
-    coordinates: [number, number];  // [longitude, latitude]
+    phone?: string;
+    location?: object;
+  } | null;
+  destinationHospitalId?: {
+    _id: string;
+    name: string;
+    address: string;
+    location?: object;
+  } | null;
+  status: "SEARCHING" | "ACCEPTED" | "ARRIVED_PICKUP" | "EN_ROUTE_HOSPITAL" | "ARRIVED_HOSPITAL" | "COMPLETED" | "CANCELLED";
+  pickup: {
     address?: string;
+    coordinates: [number, number];  // [lng, lat]
   };
-  dropLocation: {
-    type: "Point";
-    coordinates: [number, number];
+  dropoff?: {
     address?: string;
+    coordinates?: [number, number];
   };
+  patientSnapshot: {
+    userId: string;
+    name: string;
+    phone: string;
+    bloodGroup: string;
+    medicalHistory?: string;
+  };
+  timeline: Array<{ status: string; timestamp: string; location?: [number, number]; updatedBy?: string }>;
+  acceptedAt?: string;
+  arrivedAtPickup?: string;
+  arrivedAtHospital?: string;
+  completedAt?: string;
   createdAt: string;
   updatedAt: string;
-}
-```
-
-### Callback Response
-
-All emitted events with callbacks follow this structure:
-
-```typescript
-interface CallbackResponse {
-  success: boolean;
-  message?: string;
-  [key: string]: any;  // Additional response data
 }
 ```
 
@@ -824,670 +743,207 @@ interface CallbackResponse {
 ### Connection Errors
 
 ```javascript
-socket.on('connect_error', (error) => {
-  console.error('Connection error:', error.message);
-  
-  if (error.message.includes('Authentication')) {
-    // Token expired or invalid
-    showError('Session expired. Please login again.');
-    redirectToLogin();
-  } else {
-    // Network error
-    showError('Unable to connect. Check your internet connection.');
-  }
+socket.on("connect_error", (error) => {
+  console.error("Connection failed:", error.message);
+  // Common errors:
+  // - "Authentication error: No token provided"
+  // - "Authentication error: Invalid token"
+  // - "Authentication error: User not found"
 });
 ```
 
-### Event Callback Errors
+### Event Errors
+
+All events return errors via the callback:
 
 ```javascript
-socket.emit('join_trip', { tripId }, (response) => {
+socket.emit("join_trip", { tripId: "invalid" }, (response) => {
   if (!response.success) {
-    switch (response.message) {
-      case 'Trip not found':
-        showError('This trip no longer exists');
-        break;
-      case 'Unauthorized: You are not part of this trip':
-        showError('You do not have access to this trip');
-        redirectToHome();
-        break;
-      default:
-        showError(response.message);
-    }
+    console.error(response.message);
+    // - "Trip ID is required"
+    // - "Trip not found"
+    // - "Unauthorized: You are not part of this trip"
+    // - "Server error"
   }
 });
 ```
 
-### Reconnection Handling
+### Disconnection Handling
 
 ```javascript
-socket.on('reconnect', (attemptNumber) => {
-  console.log('Reconnected after', attemptNumber, 'attempts');
+socket.on("disconnect", (reason) => {
+  console.log("Disconnected:", reason);
+  // Reasons: "io server disconnect", "transport close",
+  //          "ping timeout", "io client disconnect"
   
-  // Rejoin trip room
-  if (currentTripId) {
-    socket.emit('join_trip', { tripId: currentTripId }, (response) => {
-      if (response.success) {
-        showSuccess('Reconnected to trip');
-      }
-    });
+  if (reason === "io server disconnect") {
+    // Server kicked you — likely auth issue
+    socket.connect(); // Will need fresh token
   }
-});
-
-socket.on('reconnect_attempt', (attemptNumber) => {
-  console.log('Reconnection attempt', attemptNumber);
-  showInfo(`Reconnecting... (Attempt ${attemptNumber})`);
-});
-
-socket.on('reconnect_failed', () => {
-  showError('Failed to reconnect. Please refresh the page.');
+  // Otherwise Socket.IO auto-reconnects
 });
 ```
 
 ---
 
-## Best Practices
+## Integration Examples
 
-### 1. Location Updates
+### Full Patient Flow
 
 ```javascript
-// ✅ Good: Throttle location updates
-let lastLocationUpdate = 0;
-const LOCATION_UPDATE_INTERVAL = 3000; // 3 seconds
+import { io } from "socket.io-client";
 
-navigator.geolocation.watchPosition((position) => {
-  const now = Date.now();
-  if (now - lastLocationUpdate >= LOCATION_UPDATE_INTERVAL) {
-    socket.emit('location_update', {
-      tripId: currentTripId,
+// 1. Connect with JWT from login
+const socket = io("http://localhost:5000", {
+  auth: { token: accessToken }
+});
+
+// 2. Confirm connection
+socket.on("connected", (data) => {
+  console.log(`Connected as ${data.userRole}: ${data.userId}`);
+});
+
+// 3. After creating a trip via REST API, join the trip room
+socket.emit("join_trip", { tripId }, (res) => {
+  if (res.success) {
+    console.log("Trip data:", res.trip);
+  }
+});
+
+// 4. Listen for ambulance assignment
+socket.on("ambulance_assigned", (data) => {
+  console.log("Ambulance assigned!", data.ambulance);
+  console.log("Distance:", data.ambulance.distanceKm, "km");
+});
+
+// 5. Send your location
+socket.emit("location_update", {
+  tripId,
+  location: { latitude: 12.97, longitude: 77.59 }
+}, (res) => console.log(res));
+
+// 6. Track ambulance location
+socket.on("location_updated", (data) => {
+  if (data.userRole === "ambulance") {
+    updateMapMarker(data.location);
+  }
+});
+
+// 7. Listen for trip status changes
+socket.on("trip_status_updated", (data) => {
+  updateUI(data.trip.status);
+});
+
+// 8. Emergency SOS if needed
+socket.emit("emergency_sos", { tripId, message: "Need help!" }, (res) => {
+  console.log("SOS sent:", res.success);
+});
+```
+
+### Full Ambulance Flow
+
+```javascript
+import { io } from "socket.io-client";
+
+const socket = io("http://localhost:5000", {
+  auth: { token: ambulanceAccessToken }
+});
+
+// 1. CRITICAL: Sync location immediately after connecting
+socket.on("connected", () => {
+  navigator.geolocation.getCurrentPosition((pos) => {
+    socket.emit("sync_initial_location", {
       location: {
-        latitude: position.coords.latitude,
-        longitude: position.coords.longitude
+        latitude: pos.coords.latitude,
+        longitude: pos.coords.longitude
+      }
+    }, (res) => {
+      console.log("Location synced:", res.success);
+    });
+  });
+});
+
+// 2. Listen for trip assignment
+socket.on("new_trip_assigned", (data) => {
+  console.log("New trip assigned:", data.tripId);
+  console.log("Patient:", data.patientSnapshot.name);
+  
+  // Immediately join the trip room
+  socket.emit("join_trip", { tripId: data.tripId }, (res) => {
+    console.log("Joined trip room:", res.success);
+  });
+});
+
+// 3. Stream location during trip
+const locationInterval = setInterval(() => {
+  navigator.geolocation.getCurrentPosition((pos) => {
+    socket.emit("location_update", {
+      tripId: activeTripId,
+      location: {
+        latitude: pos.coords.latitude,
+        longitude: pos.coords.longitude,
+        speed: pos.coords.speed,
+        heading: pos.coords.heading,
+        accuracy: pos.coords.accuracy
       }
     });
-    lastLocationUpdate = now;
+  });
+}, 3000); // Every 3 seconds
+
+// 4. Get patient location
+socket.emit("get_location", {
+  tripId: activeTripId,
+  targetRole: "user"
+}, (res) => {
+  if (res.success) {
+    navigateTo(res.location);
   }
 });
 
-// ❌ Bad: No throttling (sends too frequently)
-navigator.geolocation.watchPosition((position) => {
-  socket.emit('location_update', { ... });
-});
-```
-
-### 2. Always Use Callbacks
-
-```javascript
-// ✅ Good: With callback for error handling
-socket.emit('join_trip', { tripId }, (response) => {
-  if (response.success) {
-    console.log('Joined successfully');
-  } else {
-    console.error('Failed:', response.message);
-  }
+// 5. Handle trip status changes
+socket.on("trip_status_updated", (data) => {
+  console.log("Trip status:", data.trip.status);
 });
 
-// ❌ Bad: No callback
-socket.emit('join_trip', { tripId });
-```
-
-### 3. Clean Up on Unmount
-
-```javascript
-// React example
-useEffect(() => {
-  // Setup listeners
-  socket.on('location_updated', handleLocationUpdate);
-  socket.on('emergency_sos', handleSOS);
-  
-  // Cleanup
-  return () => {
-    socket.off('location_updated', handleLocationUpdate);
-    socket.off('emergency_sos', handleSOS);
-    
-    // Leave trip room
-    if (tripId) {
-      socket.emit('leave_trip', { tripId });
-    }
-  };
-}, []);
-```
-
-### 4. Reconnection Strategy
-
-```javascript
-const socket = io(SERVER_URL, {
-  auth: { token: getAccessToken() },
-  reconnection: true,
-  reconnectionDelay: 1000,
-  reconnectionDelayMax: 5000,
-  reconnectionAttempts: 5
-});
-
-// Re-authenticate on reconnect
-socket.on('reconnect', () => {
-  // Re-join rooms
-  if (currentTripId) {
-    socket.emit('join_trip', { tripId: currentTripId });
+// 6. Clean up when trip completes
+socket.on("trip_status_updated", (data) => {
+  if (data.trip.status === "COMPLETED") {
+    clearInterval(locationInterval);
+    socket.emit("leave_trip", { tripId: data.trip._id });
   }
 });
 ```
 
-### 5. Token Refresh
+### Admin Dashboard
 
 ```javascript
-// Monitor token expiration
-socket.on('connect_error', (error) => {
-  if (error.message.includes('token')) {
-    // Refresh token
-    refreshAccessToken().then((newToken) => {
-      socket.auth.token = newToken;
-      socket.connect();
-    });
+import { io } from "socket.io-client";
+
+const socket = io("http://localhost:5000", {
+  auth: { token: adminAccessToken }
+});
+
+// Auto-joined to admin-room
+
+// Monitor new trip requests (broadcasts when no ambulance auto-assigned)
+socket.on("new_trip_request", (data) => {
+  addToTripDashboard(data);
+});
+
+// Monitor auto-assignments
+socket.on("trip_auto_assigned", (data) => {
+  console.log(`Trip ${data.tripId} assigned to ambulance ${data.ambulanceId} (${data.distanceKm}km)`);
+});
+
+// Monitor SOS alerts
+socket.on("emergency_sos", (data) => {
+  showAlert(`🚨 SOS in Trip ${data.tripId} by ${data.userRole}: ${data.message}`);
+});
+
+// Join any trip to monitor it
+socket.emit("join_trip", { tripId: "any-trip-id" }, (res) => {
+  if (res.success) {
+    // Now receiving all events for this trip
   }
 });
 ```
-
----
-
-## Code Examples
-
-### Complete User Implementation
-
-```javascript
-import io from 'socket.io-client';
-
-class TripTracker {
-  constructor(serverUrl, accessToken) {
-    this.socket = io(serverUrl, {
-      auth: { token: accessToken },
-      transports: ['websocket', 'polling'],
-      reconnection: true
-    });
-    
-    this.currentTripId = null;
-    this.setupListeners();
-  }
-  
-  setupListeners() {
-    // Connection events
-    this.socket.on('connect', () => {
-      console.log('Connected:', this.socket.id);
-      this.onConnect();
-    });
-    
-    this.socket.on('connected', (data) => {
-      console.log('Welcome:', data);
-    });
-    
-    // Trip events
-    this.socket.on('participant_joined', (data) => {
-      console.log('Participant joined:', data);
-      if (data.userRole === 'ambulance') {
-        this.onAmbulanceJoined(data);
-      }
-    });
-    
-    this.socket.on('location_updated', (data) => {
-      if (data.userRole === 'ambulance') {
-        this.onAmbulanceLocationUpdate(data.location);
-      }
-    });
-    
-    this.socket.on('emergency_sos', (data) => {
-      this.onEmergencySOS(data);
-    });
-    
-    this.socket.on('participant_disconnected', (data) => {
-      console.log('Participant disconnected:', data);
-    });
-  }
-  
-  joinTrip(tripId) {
-    this.currentTripId = tripId;
-    
-    this.socket.emit('join_trip', { tripId }, (response) => {
-      if (response.success) {
-        console.log('Joined trip:', response.trip);
-        this.startLocationTracking();
-      } else {
-        console.error('Failed to join:', response.message);
-      }
-    });
-  }
-  
-  startLocationTracking() {
-    if (!navigator.geolocation) {
-      console.error('Geolocation not supported');
-      return;
-    }
-    
-    this.watchId = navigator.geolocation.watchPosition(
-      (position) => {
-        this.sendLocation({
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
-          accuracy: position.coords.accuracy
-        });
-      },
-      (error) => {
-        console.error('Geolocation error:', error);
-      },
-      {
-        enableHighAccuracy: true,
-        maximumAge: 0,
-        timeout: 5000
-      }
-    );
-  }
-  
-  sendLocation(location) {
-    if (!this.currentTripId) return;
-    
-    this.socket.emit('location_update', {
-      tripId: this.currentTripId,
-      location
-    }, (response) => {
-      if (!response.success) {
-        console.error('Location update failed:', response.message);
-      }
-    });
-  }
-  
-  sendSOS(message) {
-    if (!this.currentTripId) return;
-    
-    this.socket.emit('emergency_sos', {
-      tripId: this.currentTripId,
-      message: message || 'HELP! Emergency!'
-    }, (response) => {
-      if (response.success) {
-        console.log('SOS sent successfully');
-      }
-    });
-  }
-  
-  getAmbulanceLocation() {
-    if (!this.currentTripId) return;
-    
-    this.socket.emit('get_location', {
-      tripId: this.currentTripId,
-      targetRole: 'ambulance'
-    }, (response) => {
-      if (response.success) {
-        this.onAmbulanceLocationUpdate(response.location);
-      } else {
-        console.log('Ambulance location not available');
-      }
-    });
-  }
-  
-  leaveTrip() {
-    if (!this.currentTripId) return;
-    
-    // Stop location tracking
-    if (this.watchId) {
-      navigator.geolocation.clearWatch(this.watchId);
-    }
-    
-    this.socket.emit('leave_trip', {
-      tripId: this.currentTripId
-    }, (response) => {
-      console.log('Left trip:', response);
-      this.currentTripId = null;
-    });
-  }
-  
-  disconnect() {
-    this.leaveTrip();
-    this.socket.disconnect();
-  }
-  
-  // Callback methods (override these)
-  onConnect() {}
-  onAmbulanceJoined(data) {}
-  onAmbulanceLocationUpdate(location) {}
-  onEmergencySOS(data) {}
-}
-
-// Usage
-const tracker = new TripTracker('http://localhost:3000', userAccessToken);
-
-tracker.onConnect = () => {
-  console.log('Ready to track!');
-};
-
-tracker.onAmbulanceJoined = (data) => {
-  showNotification('Ambulance has joined your trip');
-};
-
-tracker.onAmbulanceLocationUpdate = (location) => {
-  updateMapMarker('ambulance', location);
-  calculateETA(location);
-};
-
-tracker.onEmergencySOS = (data) => {
-  showUrgentAlert(`SOS from ${data.userRole}: ${data.message}`);
-};
-
-// Start tracking
-tracker.joinTrip('507f1f77bcf86cd799439011');
-
-// Send SOS
-tracker.sendSOS('Patient condition critical!');
-
-// Cleanup
-tracker.disconnect();
-```
-
-### Complete Ambulance Implementation
-
-```javascript
-class AmbulanceTracker {
-  constructor(serverUrl, accessToken) {
-    this.socket = io(serverUrl, {
-      auth: { token: accessToken },
-      transports: ['websocket', 'polling']
-    });
-    
-    this.currentTripId = null;
-    this.locationInterval = null;
-    this.setupListeners();
-  }
-  
-  setupListeners() {
-    this.socket.on('connect', () => {
-      console.log('Ambulance connected:', this.socket.id);
-    });
-    
-    this.socket.on('connected', (data) => {
-      console.log('Authenticated as:', data.userRole);
-    });
-    
-    this.socket.on('location_updated', (data) => {
-      if (data.userRole === 'user') {
-        this.onPatientLocationUpdate(data.location);
-      }
-    });
-    
-    this.socket.on('emergency_sos', (data) => {
-      if (data.userRole === 'user') {
-        this.onPatientSOS(data);
-      }
-    });
-  }
-  
-  acceptTrip(tripId) {
-    this.currentTripId = tripId;
-    
-    this.socket.emit('join_trip', { tripId }, (response) => {
-      if (response.success) {
-        console.log('Joined trip:', response.trip);
-        this.startLocationBroadcast();
-        this.getPatientLocation();
-      }
-    });
-  }
-  
-  startLocationBroadcast() {
-    // Send location every 3 seconds
-    this.locationInterval = setInterval(() => {
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition((position) => {
-          this.sendLocation({
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude,
-            speed: position.coords.speed
-          });
-        });
-      }
-    }, 3000);
-  }
-  
-  sendLocation(location) {
-    if (!this.currentTripId) return;
-    
-    this.socket.emit('location_update', {
-      tripId: this.currentTripId,
-      location
-    });
-  }
-  
-  getPatientLocation() {
-    if (!this.currentTripId) return;
-    
-    this.socket.emit('get_location', {
-      tripId: this.currentTripId,
-      targetRole: 'user'
-    }, (response) => {
-      if (response.success) {
-        this.onPatientLocationUpdate(response.location);
-      }
-    });
-  }
-  
-  completeTrip() {
-    if (this.locationInterval) {
-      clearInterval(this.locationInterval);
-    }
-    
-    this.socket.emit('leave_trip', {
-      tripId: this.currentTripId
-    }, () => {
-      console.log('Trip completed');
-      this.currentTripId = null;
-    });
-  }
-  
-  // Callbacks
-  onPatientLocationUpdate(location) {}
-  onPatientSOS(data) {}
-}
-
-// Usage
-const ambulance = new AmbulanceTracker('http://localhost:3000', ambulanceToken);
-
-ambulance.onPatientLocationUpdate = (location) => {
-  updateMapRoute(location);
-  console.log('Patient at:', location);
-};
-
-ambulance.onPatientSOS = (data) => {
-  playAlertSound();
-  showAlert('PATIENT EMERGENCY: ' + data.message);
-};
-
-ambulance.acceptTrip('507f1f77bcf86cd799439011');
-```
-
-### React Hook Example
-
-```javascript
-import { useEffect, useState } from 'react';
-import io from 'socket.io-client';
-
-function useTripTracking(tripId, accessToken) {
-  const [socket, setSocket] = useState(null);
-  const [connected, setConnected] = useState(false);
-  const [ambulanceLocation, setAmbulanceLocation] = useState(null);
-  const [participants, setParticipants] = useState([]);
-  
-  useEffect(() => {
-    if (!tripId || !accessToken) return;
-    
-    // Initialize socket
-    const newSocket = io('http://localhost:3000', {
-      auth: { token: accessToken },
-      transports: ['websocket', 'polling']
-    });
-    
-    // Connection events
-    newSocket.on('connect', () => {
-      setConnected(true);
-      
-      // Join trip
-      newSocket.emit('join_trip', { tripId }, (response) => {
-        if (response.success) {
-          console.log('Joined trip successfully');
-        }
-      });
-    });
-    
-    newSocket.on('disconnect', () => {
-      setConnected(false);
-    });
-    
-    // Trip events
-    newSocket.on('participant_joined', (data) => {
-      setParticipants(prev => [...prev, data]);
-    });
-    
-    newSocket.on('participant_left', (data) => {
-      setParticipants(prev => 
-        prev.filter(p => p.userId !== data.userId)
-      );
-    });
-    
-    newSocket.on('location_updated', (data) => {
-      if (data.userRole === 'ambulance') {
-        setAmbulanceLocation(data.location);
-      }
-    });
-    
-    newSocket.on('emergency_sos', (data) => {
-      // Handle SOS
-      alert(`EMERGENCY: ${data.message}`);
-    });
-    
-    setSocket(newSocket);
-    
-    // Cleanup
-    return () => {
-      if (newSocket) {
-        newSocket.emit('leave_trip', { tripId });
-        newSocket.disconnect();
-      }
-    };
-  }, [tripId, accessToken]);
-  
-  // Send location
-  const sendLocation = (location) => {
-    if (socket && connected) {
-      socket.emit('location_update', {
-        tripId,
-        location
-      });
-    }
-  };
-  
-  // Send SOS
-  const sendSOS = (message) => {
-    if (socket && connected) {
-      socket.emit('emergency_sos', {
-        tripId,
-        message
-      });
-    }
-  };
-  
-  return {
-    connected,
-    ambulanceLocation,
-    participants,
-    sendLocation,
-    sendSOS
-  };
-}
-
-// Usage in component
-function TripScreen({ tripId, accessToken }) {
-  const {
-    connected,
-    ambulanceLocation,
-    participants,
-    sendLocation,
-    sendSOS
-  } = useTripTracking(tripId, accessToken);
-  
-  useEffect(() => {
-    // Start tracking user location
-    const watchId = navigator.geolocation.watchPosition((position) => {
-      sendLocation({
-        latitude: position.coords.latitude,
-        longitude: position.coords.longitude
-      });
-    });
-    
-    return () => {
-      navigator.geolocation.clearWatch(watchId);
-    };
-  }, [sendLocation]);
-  
-  return (
-    <div>
-      <h1>Trip Tracking</h1>
-      <p>Status: {connected ? 'Connected' : 'Disconnected'}</p>
-      <p>Participants: {participants.length}</p>
-      
-      {ambulanceLocation && (
-        <div>
-          <h2>Ambulance Location</h2>
-          <p>Lat: {ambulanceLocation.latitude}</p>
-          <p>Lng: {ambulanceLocation.longitude}</p>
-        </div>
-      )}
-      
-      <button onClick={() => sendSOS('HELP!')}>
-        🚨 Send SOS
-      </button>
-    </div>
-  );
-}
-```
-
----
-
-## Summary
-
-### Key Points to Remember
-
-1. **Always authenticate** with JWT token in socket connection
-2. **Join trip room** before sending/receiving trip-specific events
-3. **Throttle location updates** to 3-5 seconds intervals
-4. **Use callbacks** for error handling on all emitted events
-5. **Clean up** event listeners and leave rooms on unmount
-6. **Handle reconnection** by re-joining rooms and resuming tracking
-7. **SOS events** are critical - never dismiss without user acknowledgment
-8. **Location updates** are frequent - optimize UI rendering
-
-### Event Priority
-
-1. **Critical:** `emergency_sos` - Must never be missed
-2. **High:** `location_updated` - Core functionality
-3. **Medium:** `participant_joined/left` - User awareness
-4. **Low:** `participant_disconnected` - Nice to have
-
-### Testing Checklist
-
-- [ ] Socket connects with valid token
-- [ ] Socket rejects invalid/expired tokens
-- [ ] Can join trip room successfully
-- [ ] Receives location updates from other participants
-- [ ] Can send location updates
-- [ ] SOS alerts are received and displayed
-- [ ] Handles disconnect and reconnect gracefully
-- [ ] Cleans up on component unmount
-- [ ] Works on poor network conditions
-- [ ] Multiple participants can be in same trip
-
----
-
-## Support
-
-
-**Testing Server:** Use the provided HTML test client to verify socket functionality before integrating into your app.
-
----
-
-**Document Version:** 1.0  
-**Last Updated:** January 28, 2026  
