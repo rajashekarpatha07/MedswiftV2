@@ -15,6 +15,7 @@ import {
   getTripDetails,
   getUserTripHistory,
   getActiveTrip,
+  getAmbulanceActiveTrip,
 } from "../services/trip.service.js";
 import { Trip } from "../model/trip.model.js";
 
@@ -83,6 +84,32 @@ const getMyActiveTrip = asyncHandler(
     }
 
     const trip = await getActiveTrip(userId.toString());
+
+    if (!trip) {
+      return res
+        .status(200)
+        .json(new ApiResponse(200, null, "No active trip found"));
+    }
+
+    res
+      .status(200)
+      .json(new ApiResponse(200, trip, "Active trip retrieved successfully"));
+  }
+);
+
+/**
+ * @description Get current active trip for logged-in ambulance
+ * @route GET /api/v2/trip/ambulance/active
+ * @access Private (Ambulance)
+ */
+const getAmbulanceActiveTripController = asyncHandler(
+  async (req: Request, res: Response) => {
+    const ambulanceId = req.ambulance?._id;
+    if (!ambulanceId) {
+      throw new ApiError(401, "Unauthorized");
+    }
+
+    const trip = await getAmbulanceActiveTrip(ambulanceId.toString());
 
     if (!trip) {
       return res
@@ -314,13 +341,14 @@ const getAllTrips = asyncHandler(
 );
 
 export {
-    getAllTrips,
-    getActiveTrip,
-    cancelTripRequest,
-    acceptTrip,
-    getMyTripHistory,
-    updateTripStatusByAmbulance,
-    getTripById,
-    getMyActiveTrip,
-    requestAmbulance
+  getAllTrips,
+  getActiveTrip,
+  cancelTripRequest,
+  acceptTrip,
+  getMyTripHistory,
+  updateTripStatusByAmbulance,
+  getTripById,
+  getMyActiveTrip,
+  requestAmbulance,
+  getAmbulanceActiveTripController,
 }

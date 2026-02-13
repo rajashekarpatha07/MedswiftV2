@@ -13,7 +13,8 @@ import {
   removeAmbulanceFromRedis,
   findNearbyAmbulances,
   getActiveAmbulanceCount,
-  getAllActiveAmbulanceIds
+  getAllActiveAmbulanceIds,
+  getAllAmbulancePositions
 } from "../services/ambulance.service.js";
 
 /**
@@ -150,6 +151,7 @@ const loginAmbulance = asyncHandler(async (req: Request, res: Response) => {
   // ---------------------------------------------------------
   // 1. REDIS SYNC: If they log in and are "ready", put them in Redis immediately
   // ---------------------------------------------------------
+  console.log(`🔧 DEBUG login: ambulance status=${ambulance.status}, location=${JSON.stringify(ambulance.location)}`);
   await syncAmbulancetoRedis(ambulance);
 
   // Set cookies
@@ -428,6 +430,7 @@ const getNearbyAmbulances = asyncHandler(
 const getAmbulanceStats = asyncHandler(async (req: Request, res: Response) => {
   const activeCount = await getActiveAmbulanceCount();
   const activeIds = await getAllActiveAmbulanceIds();
+  const positions = await getAllAmbulancePositions();
 
   res.status(200).json(
     new ApiResponse(
@@ -435,6 +438,7 @@ const getAmbulanceStats = asyncHandler(async (req: Request, res: Response) => {
       {
         activeAmbulances: activeCount,
         ambulanceIds: activeIds,
+        ambulancePositions: positions,
       },
       "Ambulance statistics retrieved successfully"
     )

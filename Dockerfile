@@ -1,31 +1,19 @@
-FROM node:20-alpine AS builder
+FROM node:22-slim AS base
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+RUN corepack enable
 
 WORKDIR /app
 
-COPY package.json pnpm-lock.yaml ./
-
-RUN npm install -g pnpm
-
+# Copy lockfile and package.json first for better caching
+COPY pnpm-lock.yaml package.json ./
 RUN pnpm install --frozen-lockfile
 
+# Copy everything else
 COPY . .
 
-RUN pnpm run build
+# Build TypeScript
+RUN pnpm build
 
-FROM node:20-alpine AS runner
-
-RUN corepack enable && corepack prepare pnpm@latest --activate
-
-WORKDIR /app
-
-COPY package.json pnpm-lock.yaml ./
-
-RUN pnpm install --prod --frozen-lockfile
-
-COPY --from=builder /app/dist ./dist
-
-USER node
-
-EXPOSE 3000
-
-CMD ["node", "dist/index.js"]
+EXPOSE 5000
+CMD ["pnpm", "start"]

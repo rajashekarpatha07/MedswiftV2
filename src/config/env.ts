@@ -11,6 +11,7 @@ const NODE_ENV = process.env.NODE_ENV as string;
 const REDIS_URL = process.env.REDIS_URL as string;
 const ADMIN_CREATION_SECRET = process.env.ADMIN_CREATION_SECRET as string;
 const BASE_URL = process.env.BASE_URL as string;
+const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
 // const TWILIO_ACCOUNT_SID = process.env.TWILIO_ACCOUNT_SID as string;
 // const TWILIO_AUTH_TOKEN = process.env.TWILIO_AUTH_TOKEN as string;
 // const FAST2SMS_API_KEY = process.env.FAST2SMS_API_KEY as string
@@ -24,6 +25,7 @@ export {
   REDIS_URL,
   ADMIN_CREATION_SECRET,
   BASE_URL,
+  FRONTEND_URL,
   // FAST2SMS_API_KEY
   // TWILIO_ACCOUNT_SID,
   // TWILIO_AUTH_TOKEN,

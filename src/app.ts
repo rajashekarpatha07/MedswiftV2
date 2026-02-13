@@ -41,27 +41,31 @@ const app: Application = express();
 app.use(helmet())
 
 app.get("/health", (req: Request, res: Response) => {
-  res.status(200).json({ 
-    status: "UP", 
+  res.status(200).json({
+    status: "UP",
     uptime: process.uptime(),
-    timestamp: new Date().toISOString() 
+    timestamp: new Date().toISOString()
   });
 });
 
-// Rate Limiting 
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 100,
-  store: new RedisStore({
-    sendCommand: (...args: string[]) => redis.sendCommand(args),
-  }),
-  standardHeaders: true,
-  legacyHeaders: false,
-});
+// // Rate Limiting 
+// const limiter = rateLimit({
+//   windowMs: 15 * 60 * 1000,
+//   max: 100,
+//   store: new RedisStore({
+//     sendCommand: (...args: string[]) => redis.sendCommand(args),
+//   }),
+//   standardHeaders: true,
+//   legacyHeaders: false,
+// });
 
 app.use(
   cors({
-    origin: BASE_URL,
+    origin: [
+      "http://localhost:5173",
+      "http://localhost",
+      "http://localhost:80",
+    ],
     credentials: true,
   })
 );
@@ -74,7 +78,7 @@ app.use(cookieParser());
 try {
   // Load the YAML file from the root directory
   const swaggerDocument = YAML.load(path.resolve("./medswift_swagger.yml"));
-  
+
   // Serve the docs at /docs
   app.use(
     "/docs",
@@ -89,7 +93,7 @@ try {
   console.error("Failed to load Swagger API documentation:", error);
 }
 
-app.use("/api", limiter)
+// app.use("/api", limiter)
 //UserRoutes
 app.use("/api/v2/user", userRoutes)
 

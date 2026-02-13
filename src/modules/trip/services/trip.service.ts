@@ -142,9 +142,17 @@ const createTripRequest = async (
     const nearest = nearbyAmbulances[0]!;
     const ambulanceData = nearest.ambulanceData!;
 
-    // Update ambulance status to on-trip
+    // Update ambulance status to on-trip AND sync Redis to prevent race condition
     await Ambulance.findByIdAndUpdate(ambulanceData._id, {
       status: "on-trip",
+    });
+
+    // CRITICAL: Remove from Redis pool immediately to prevent double-assignment
+    const { syncAmbulancetoRedis } = await import("../../ambulance/services/ambulance.service.js");
+    await syncAmbulancetoRedis({
+      _id: ambulanceData._id,
+      status: "on-trip",
+      location: ambulanceData.location
     });
 
     // Create trip with ACCEPTED status (ambulance already assigned)
@@ -157,13 +165,12 @@ const createTripRequest = async (
         ...(pickupAddress && { address: pickupAddress }),
         coordinates: pickupCoordinates,
       },
-      ...(hospital && {
-        dropoff: {
-          address: hospital.address,
-          coordinates: hospital.location.coordinates,
-        },
-        destinationHospitalId: hospital._id,
-      }),
+      // Always set dropoff, even if hospital not found (prevents null reference)
+      dropoff: hospital ? {
+        address: hospital.address,
+        coordinates: hospital.location.coordinates,
+      } : undefined,
+      ...(hospital && { destinationHospitalId: hospital._id }),
       patientSnapshot: {
         userId: user._id.toString(),
         name: user.name,
@@ -187,7 +194,20 @@ const createTripRequest = async (
       ],
     });
 
-    await trip.save();
+    // Save trip with rollback on failure
+    try {
+      await trip.save();
+    } catch (saveError) {
+      // ROLLBACK: Restore ambulance status if trip save fails
+      console.error("❌ Trip save failed, rolling back ambulance status:", saveError);
+      await Ambulance.findByIdAndUpdate(ambulanceData._id, { status: "ready" });
+      await syncAmbulancetoRedis({
+        _id: ambulanceData._id,
+        status: "ready",
+        location: ambulanceData.location
+      });
+      throw saveError;
+    }
     // 6. Populate trip data for socket emission
     const populatedTrip = await Trip.findById(trip._id)
       .populate("userId", "name phone bloodGroup")
@@ -296,7 +316,8 @@ const createTripRequest = async (
   try {
     const io = getIO();
     io.to("ambulance-room").emit("new_trip_request", {
-      tripId: trip._id,
+      _id: trip._id,  // Changed from tripId to _id for frontend consistency
+      tripId: trip._id,  // Keep tripId for backwards compatibility
       pickup: trip.pickup,
       patientSnapshot: trip.patientSnapshot,
       timestamp: new Date().toISOString(),
@@ -420,6 +441,14 @@ const assignAmbulanceToTrip = async (
   tripId: string,
   ambulanceId: string,
 ): Promise<ITrip> => {
+  // Validate ObjectIds to prevent CastError
+  if (!tripId || !mongoose.Types.ObjectId.isValid(tripId)) {
+    throw new ApiError(400, "Invalid trip ID");
+  }
+  if (!ambulanceId || !mongoose.Types.ObjectId.isValid(ambulanceId)) {
+    throw new ApiError(400, "Invalid ambulance ID");
+  }
+
   const trip = await Trip.findById(tripId);
   if (!trip) {
     throw new ApiError(404, "Trip not found");
@@ -463,6 +492,11 @@ const cancelTrip = async (
   tripId: string,
   cancelledBy: string,
 ): Promise<ITrip> => {
+  // Validate ObjectId
+  if (!tripId || !mongoose.Types.ObjectId.isValid(tripId)) {
+    throw new ApiError(400, "Invalid trip ID");
+  }
+
   const trip = await Trip.findById(tripId);
   if (!trip) {
     throw new ApiError(404, "Trip not found");
@@ -481,9 +515,19 @@ const cancelTrip = async (
 
   await trip.save();
 
-  // If ambulance was assigned, free it up
+  // If ambulance was assigned, free it up and sync to Redis
   if (trip.ambulanceId) {
-    await Ambulance.findByIdAndUpdate(trip.ambulanceId, { status: "ready" });
+    const ambulance = await Ambulance.findByIdAndUpdate(
+      trip.ambulanceId,
+      { status: "ready" },
+      { new: true }
+    );
+
+    // Sync ambulance back to Redis pool
+    if (ambulance) {
+      const { syncAmbulancetoRedis } = await import("../../ambulance/services/ambulance.service.js");
+      await syncAmbulancetoRedis(ambulance);
+    }
   }
 
   // Emit socket event
@@ -507,6 +551,11 @@ const cancelTrip = async (
  * Get trip details with populated references
  */
 const getTripDetails = async (tripId: string): Promise<any> => {
+  // Validate ObjectId
+  if (!tripId || !mongoose.Types.ObjectId.isValid(tripId)) {
+    throw new ApiError(400, "Invalid trip ID");
+  }
+
   const trip = await Trip.findById(tripId)
     .populate("userId", "-password -refreshToken")
     .populate("ambulanceId", "-password -refreshToken")
@@ -527,6 +576,11 @@ const getUserTripHistory = async (
   userId: string,
   limit: number = 10,
 ): Promise<ITrip[]> => {
+  // Validate ObjectId
+  if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
+    throw new ApiError(400, "Invalid user ID");
+  }
+
   const trips = await Trip.find({ userId })
     .sort({ createdAt: -1 })
     .limit(limit)
@@ -540,6 +594,11 @@ const getUserTripHistory = async (
  * Get active trip for user
  */
 const getActiveTrip = async (userId: string): Promise<ITrip | null> => {
+  // Validate ObjectId
+  if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
+    throw new ApiError(400, "Invalid user ID");
+  }
+
   const trip = await Trip.findOne({
     userId,
     status: {
@@ -559,6 +618,33 @@ const getActiveTrip = async (userId: string): Promise<ITrip | null> => {
   return trip;
 };
 
+/**
+ * Get active trip for ambulance
+ */
+const getAmbulanceActiveTrip = async (ambulanceId: string): Promise<ITrip | null> => {
+  // Validate ObjectId
+  if (!ambulanceId || !mongoose.Types.ObjectId.isValid(ambulanceId)) {
+    throw new ApiError(400, "Invalid ambulance ID");
+  }
+
+  const trip = await Trip.findOne({
+    ambulanceId,
+    status: {
+      $in: [
+        "ACCEPTED",
+        "ARRIVED_PICKUP",
+        "EN_ROUTE_HOSPITAL",
+        "ARRIVED_HOSPITAL",
+      ],
+    },
+  })
+    .populate("userId", "-password -refreshToken")
+    .populate("destinationHospitalId", "-password -refreshToken")
+    .lean();
+
+  return trip;
+};
+
 export {
   createTripRequest,
   updateTripStatus,
@@ -567,4 +653,5 @@ export {
   getTripDetails,
   getUserTripHistory,
   getActiveTrip,
+  getAmbulanceActiveTrip,
 };

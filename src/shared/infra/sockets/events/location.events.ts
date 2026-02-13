@@ -1,16 +1,14 @@
 import type { AuthenticatedSocket } from "../socket.middleware/socket.middleware.js";
 import redis from "../../../../config/redis.js";
 import { Trip } from "../../../../modules/trip/model/trip.model.js";
-// import { Ambulance } from "../../../../modules/ambulance/model/ambulance.model.js";
+import { Ambulance } from "../../../../modules/ambulance/model/ambulance.model.js";
 
-interface LocationUpdatePayload {
-  tripId: string;
+const AMBULANCE_GEO_KEY = "ambulance_locations";
+
+interface InitialLocationPayload {
   location: {
     latitude: number;
     longitude: number;
-    accuracy?: number;
-    heading?: number;
-    speed?: number;
   };
 }
 
@@ -26,6 +24,21 @@ interface LocationUpdatePayload {
 }
 
 /**
+ * Validate coordinates are within valid ranges
+ * @param lat Latitude (-90 to 90)
+ * @param lng Longitude (-180 to 180)
+ */
+const isValidCoordinates = (lat: number, lng: number): boolean => {
+  return (
+    typeof lat === "number" &&
+    typeof lng === "number" &&
+    lat >= -90 && lat <= 90 &&
+    lng >= -180 && lng <= 180 &&
+    !isNaN(lat) && !isNaN(lng)
+  );
+};
+
+/**
  * Register all location-related socket events
  */
 const registerLocationEvents = (socket: AuthenticatedSocket) => {
@@ -36,6 +49,93 @@ const registerLocationEvents = (socket: AuthenticatedSocket) => {
     console.error("Socket missing userId or userRole");
     return;
   }
+
+  /**
+   * Sync initial location when ambulance connects
+   * CRITICAL: Ambulance MUST emit this event immediately after connecting
+   * to ensure they are findable in geo searches with their CURRENT location
+   */
+  socket.on(
+    "sync_initial_location",
+    async (payload: InitialLocationPayload, callback) => {
+      try {
+        // Only ambulances can sync their location this way
+        if (userRole !== "ambulance") {
+          return callback?.({
+            success: false,
+            message: "Only ambulances can sync initial location",
+          });
+        }
+
+        const { location } = payload;
+
+        // Validate location data exists
+        if (!location?.latitude || !location?.longitude) {
+          return callback?.({
+            success: false,
+            message: "Invalid location payload. Required: { location: { latitude, longitude } }",
+          });
+        }
+
+        const { latitude, longitude } = location;
+
+        // Validate coordinates are within valid ranges
+        if (!isValidCoordinates(latitude, longitude)) {
+          return callback?.({
+            success: false,
+            message: `Invalid coordinates: lat=${latitude}, lng=${longitude}. Valid ranges: lat(-90,90), lng(-180,180)`,
+          });
+        }
+
+        // Update ambulance location in MongoDB
+        const ambulance = await Ambulance.findByIdAndUpdate(
+          userId,
+          {
+            location: {
+              type: "Point",
+              coordinates: [longitude, latitude], // GeoJSON format: [lng, lat]
+            },
+          },
+          { new: true }
+        ).select("-password -refreshToken");
+
+        if (!ambulance) {
+          return callback?.({
+            success: false,
+            message: "Ambulance not found",
+          });
+        }
+
+        // Update Redis geo index with current location
+        // Only add to pool if ambulance is "ready"
+        if (ambulance.status === "ready") {
+          await redis.geoAdd(AMBULANCE_GEO_KEY, {
+            member: userId,
+            longitude,
+            latitude,
+          });
+          console.log(
+            `📍 Ambulance ${userId} synced location to Redis: (${longitude}, ${latitude})`
+          );
+        } else {
+          // If not ready, ensure they're removed from pool
+          await redis.zRem(AMBULANCE_GEO_KEY, userId);
+          console.log(
+            `📍 Ambulance ${userId} location updated but not in pool (status: ${ambulance.status})`
+          );
+        }
+
+        callback?.({
+          success: true,
+          message: "Location synced successfully",
+          location: ambulance.location,
+        });
+      } catch (error) {
+        console.error("sync_initial_location error:", error);
+        callback?.({ success: false, message: "Server error" });
+      }
+    }
+  );
 
   /**
    * Update real-time location during a trip

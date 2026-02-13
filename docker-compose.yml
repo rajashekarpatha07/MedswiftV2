@@ -1,32 +1,40 @@
 services:
-  app:
-    image: medswift-pentest:v1
-    container_name: medswift-app
-    restart: always
+  backend:
+    build: .
+    container_name: medswift_backend
+    # We keep 5000 open for local testing, but the tunnel will use the internal name
     ports:
-      - "3000:3000"
+      - "5000:5000"
+    env_file:
+      - .env
     environment:
-      - PORT=3000
       - NODE_ENV=production
-      - REDIS_URL=redis://redis:6379 
-      - MONGO_URL=mongodb://mongo:27017/medswift_db
-    depends_on:
-      - redis
-      - mongo
+      # IMPORTANT: If your frontend calls the API, BASE_URL might need to be the Public URL
+      - BASE_URL=http://backend:5000 
+      - MONGO_URI=${MONGO_URI}
+      - REDIS_URL=${REDIS_URL}
     networks:
-      - pentest-net
-  redis:
-    image: redis:alpine
-    container_name: medswift_redis
-    networks:
-      - pentest-net
+      - medswift_network
 
-  # MongoDB
-  mongo:
-    image: mongo:latest
-    container_name: medswift_mongo
+  frontend:
+    build: ./frontend
+    container_name: medswift_frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
     networks:
-      - pentest-net
+      - medswift_network
+
+  # This is your "magic" bridge to the internet
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    container_name: medswift_tunnel
+    command: tunnel --url http://frontend:80
+    restart: always
+    networks:
+      - medswift_network
 
 networks:
-  pentest-net:
+  medswift_network:
+    driver: bridge

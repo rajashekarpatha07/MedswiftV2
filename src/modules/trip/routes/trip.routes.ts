@@ -22,6 +22,7 @@ import {
   updateTripStatusByAmbulance,
   cancelTripRequest,
   getAllTrips,
+  getAmbulanceActiveTripController,
 } from "../controllers/trip.controller.js";
 
 const router = Router();
@@ -61,11 +62,18 @@ router.get("/history", verifyUserJWT, getMyTripHistory);
  * @desc    Cancel a trip
  * @access  Private (User/Ambulance)
  */
-router.post("/cancel/:tripId", verifyJWT, cancelTripRequest);
+router.post("/:tripId/cancel", verifyJWT, cancelTripRequest);
 
 // ============================================
 // AMBULANCE ROUTES
 // ============================================
+
+/**
+ * @route   GET /api/v2/trip/ambulance/active
+ * @desc    Get current active trip for ambulance
+ * @access  Private (Ambulance)
+ */
+router.get("/ambulance/active", verifyAmbulanceJWT, getAmbulanceActiveTripController);
 
 /**
  * @route   POST /api/v2/trip/:tripId/accept
