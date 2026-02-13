@@ -335,6 +335,3 @@ MedSwift uses Socket.IO for real-time communication. Key capabilities:
 
 ---
 
-## 📄 License
-
-ISC
