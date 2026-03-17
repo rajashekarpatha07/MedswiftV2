@@ -187,7 +187,7 @@ Medswift/
 ### 1. Clone & Install
 
 ```bash
-git clone https://github.com/your-org/medswift.git
+git clone https://github.com/rajashekarpatha07/MedswiftV2.git
 cd medswift
 pnpm install
 ```
