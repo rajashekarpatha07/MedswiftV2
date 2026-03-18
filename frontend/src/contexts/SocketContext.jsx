@@ -68,8 +68,8 @@ export const SocketProvider = ({ children }) => {
         const token = localStorage.getItem('accessToken');
         if (!token) return;
 
-        const BACKEND_URL = "http://localhost:5000";
-
+        const BACKEND_URL = "/";
+        
         // Connect to Socket.IO with reconnection options
         const newSocket = io(BACKEND_URL, {
             auth: { token },

@@ -155,7 +155,7 @@ const loginUser = asyncHandler(async (req: Request, res: Response) => {
     .status(200)
     .cookie("accessToken", accessToken, {
       ...cookieOptions,
-      maxAge: 15 * 60 * 1000, // 15 mins
+      maxAge: 90 * 60 * 1000, // 15 mins
     })
     .cookie("refreshToken", refreshToken, {
       ...cookieOptions,

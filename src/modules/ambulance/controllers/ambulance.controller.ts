@@ -85,7 +85,7 @@ const registerAmbulance = asyncHandler(async (req: Request, res: Response) => {
     .status(201)
     .cookie("accessToken", accessToken, {
       ...cookieOptions,
-      maxAge: 15 * 60 * 1000,
+      maxAge: 90 * 60 * 1000,
     }) // 15 minutes
     .cookie("refreshToken", refreshToken, {
       ...cookieOptions,
