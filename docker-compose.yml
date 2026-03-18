@@ -9,8 +9,8 @@ services:
       - .env
     environment:
       - NODE_ENV=production
-      # IMPORTANT: If your frontend calls the API, BASE_URL might need to be the Public URL
-      - BASE_URL=http://backend:5000 
+      # Pulls the secure HTTPS URL from your .env file
+      - BASE_URL=${BASE_URL} 
       - MONGO_URI=${MONGO_URI}
       - REDIS_URL=${REDIS_URL}
     networks:
@@ -21,6 +21,10 @@ services:
     container_name: medswift_frontend
     ports:
       - "80:80"
+      - "443:443"  # Open the secure port
+    volumes:
+      # Pass the certificates from the EC2 host into the container
+      - /etc/letsencrypt:/etc/letsencrypt:ro
     depends_on:
       - backend
     networks:
