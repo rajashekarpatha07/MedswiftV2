@@ -13,8 +13,10 @@ body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: #070a15;
+    color: white;
     min-height: 100vh;
+    overflow-x: hidden;
 }
 
 /* Premium gradient backgrounds */
@@ -110,19 +112,21 @@ body {
     box-shadow: 0 0 10px #ef4444;
 }
 
-/* Custom scrollbar */
+/* Custom scrollbar — dark theme */
 ::-webkit-scrollbar {
-    width: 8px;
+    width: 6px;
 }
 
 ::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 10px;
+    background: rgba(255,255,255,0.03);
 }
 
 ::-webkit-scrollbar-thumb {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: rgba(255,255,255,0.12);
     border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(255,255,255,0.2);
 }
 
 /* Text gradients */
@@ -210,3 +214,13 @@ body {
 .leaflet-popup-tip { background: rgba(15, 23, 42, 0.95) !important; }
 .leaflet-popup-content { font-family: 'Inter', sans-serif !important; font-size: 12px !important; }
 .leaflet-popup-close-button { color: #94a3b8 !important; }
+
+/* ── Responsive breakpoints ── */
+@media (max-width: 768px) {
+    /* Auth pages — reduce card padding on mobile */
+    body { font-size: 14px; }
+}
+
+@media (max-width: 480px) {
+    body { font-size: 13px; }
+}
