@@ -1,137 +1,172 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Container, Title, Text, Button, Card, Stack, Group, Box, Paper, ThemeIcon, SimpleGrid, NumberInput, Badge } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { useAuth } from '../../contexts/AuthContext';
 import { updateHospitalInventory } from '../../api/hospital';
+import DashboardShell, { DarkCard, SectionHeader, StatCard } from '../../components/DashboardShell';
 
 const bloodTypes = [
     { key: 'A_positive', label: 'A+' }, { key: 'A_negative', label: 'A-' },
     { key: 'B_positive', label: 'B+' }, { key: 'B_negative', label: 'B-' },
     { key: 'O_positive', label: 'O+' }, { key: 'O_negative', label: 'O-' },
-    { key: 'AB_positive', label: 'AB+' }, { key: 'AB_negative', label: 'AB-' }
+    { key: 'AB_positive', label: 'AB+' }, { key: 'AB_negative', label: 'AB-' },
 ];
 
-function HospitalDashboard() {
+export default function HospitalDashboard() {
     const navigate = useNavigate();
     const { user, logout, updateUser } = useAuth();
 
     const [inventory, setInventory] = useState(user?.inventory || {
         beds: { total: 0, available: 0 },
-        bloodStock: { A_positive: 0, A_negative: 0, B_positive: 0, B_negative: 0, O_positive: 0, O_negative: 0, AB_positive: 0, AB_negative: 0 }
+        bloodStock: { A_positive: 0, A_negative: 0, B_positive: 0, B_negative: 0, O_positive: 0, O_negative: 0, AB_positive: 0, AB_negative: 0 },
     });
     const [editing, setEditing] = useState(false);
     const [saving, setSaving] = useState(false);
 
-    const handleBedChange = (field, value) => setInventory({ ...inventory, beds: { ...inventory.beds, [field]: value || 0 } });
-    const handleBloodChange = (type, value) => setInventory({ ...inventory, bloodStock: { ...inventory.bloodStock, [type]: value || 0 } });
+    const handleBedChange = (field, value) => setInventory({ ...inventory, beds: { ...inventory.beds, [field]: parseInt(value) || 0 } });
+    const handleBloodChange = (type, value) => setInventory({ ...inventory, bloodStock: { ...inventory.bloodStock, [type]: parseInt(value) || 0 } });
 
     const handleSave = async () => {
         setSaving(true);
         try {
             const res = await updateHospitalInventory(inventory);
-            if (res.status) {
-                updateUser({ inventory: res.data.inventory });
-                notifications.show({ title: 'Saved!', message: 'Inventory updated successfully', color: 'teal' });
-                setEditing(false);
-            }
-        } catch (err) {
-            notifications.show({ title: 'Error', message: err.response?.data?.message || 'Failed to save', color: 'red' });
-        } finally { setSaving(false); }
+            if (res.status) { updateUser({ inventory: res.data.inventory }); notifications.show({ title: 'Saved!', message: 'Inventory updated', color: 'teal' }); setEditing(false); }
+        } catch (err) { notifications.show({ title: 'Error', message: err.response?.data?.message || 'Failed to save', color: 'red' }); }
+        finally { setSaving(false); }
     };
 
     const handleLogout = async () => { await logout(); navigate('/'); };
+    const occupiedBeds = inventory.beds.total - inventory.beds.available;
+    const occupancyPct = inventory.beds.total > 0 ? Math.round((occupiedBeds / inventory.beds.total) * 100) : 0;
 
     return (
-        <Box style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)' }}>
-            <Paper py="md" px="xl" style={{ background: 'rgba(255,255,255,0.95)', position: 'sticky', top: 0, zIndex: 100 }}>
-                <Group justify="space-between">
-                    <Group>
-                        <ThemeIcon size={45} radius="xl" variant="gradient" gradient={{ from: 'violet', to: 'grape' }}>
-                            <span style={{ fontSize: '20px' }}>🏥</span>
-                        </ThemeIcon>
-                        <Box>
-                            <Text fw={600} size="lg">{user?.name}</Text>
-                            <Text size="sm" c="dimmed">{user?.address}</Text>
-                        </Box>
-                    </Group>
-                    <Button variant="subtle" color="gray" onClick={handleLogout}>Logout</Button>
-                </Group>
-            </Paper>
+        <DashboardShell
+            icon="🏥" title={user?.name || 'Hospital'}
+            subtitle={user?.address || 'Hospital Dashboard'}
+            gradient="linear-gradient(135deg, #8b5cf6, #a855f7)"
+            userName={user?.name}
+            onLogout={handleLogout}
+        >
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
 
-            <Container size="lg" py="xl">
-                <Stack gap="lg">
-                    {/* Bed Inventory */}
-                    <Card radius="lg" padding="xl" className="glass">
-                        <Group justify="space-between" mb="lg">
-                            <Group>
-                                <ThemeIcon size={40} radius="xl" color="violet"><span>🛏️</span></ThemeIcon>
-                                <Title order={3}>Bed Availability</Title>
-                            </Group>
-                            {!editing && <Button variant="light" color="violet" onClick={() => setEditing(true)}>Edit</Button>}
-                        </Group>
-                        <SimpleGrid cols={3} spacing="md">
-                            <Paper p="xl" radius="md" bg="gray.0" ta="center">
-                                <Text size="3rem" fw={700} c="dark">{inventory.beds.total}</Text>
-                                <Text c="dimmed">Total Beds</Text>
-                                {editing && <NumberInput mt="sm" value={inventory.beds.total} onChange={(v) => handleBedChange('total', v)} min={0} />}
-                            </Paper>
-                            <Paper p="xl" radius="md" ta="center" style={{ background: 'linear-gradient(135deg, #11998e22 0%, #38ef7d22 100%)', border: '1px solid #10b981' }}>
-                                <Text size="3rem" fw={700} c="teal">{inventory.beds.available}</Text>
-                                <Text c="dimmed">Available</Text>
-                                {editing && <NumberInput mt="sm" value={inventory.beds.available} onChange={(v) => handleBedChange('available', v)} min={0} max={inventory.beds.total} />}
-                            </Paper>
-                            <Paper p="xl" radius="md" ta="center" style={{ background: 'linear-gradient(135deg, #ff416c22 0%, #ff4b2b22 100%)', border: '1px solid #ef4444' }}>
-                                <Text size="3rem" fw={700} c="red">{inventory.beds.total - inventory.beds.available}</Text>
-                                <Text c="dimmed">Occupied</Text>
-                            </Paper>
-                        </SimpleGrid>
-                    </Card>
+                {/* ── BED AVAILABILITY ── */}
+                <DarkCard>
+                    <SectionHeader icon="🛏️" title="Bed Availability"
+                        right={!editing && (
+                            <button onClick={() => setEditing(true)} style={{
+                                padding: '7px 16px', borderRadius: 10, border: '1px solid rgba(139,92,246,0.3)',
+                                background: 'rgba(139,92,246,0.1)', color: '#a78bfa',
+                                fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
+                            }}>Edit</button>
+                        )}
+                    />
 
-                    {/* Blood Stock */}
-                    <Card radius="lg" padding="xl" className="glass">
-                        <Group mb="lg">
-                            <ThemeIcon size={40} radius="xl" color="red"><span>🩸</span></ThemeIcon>
-                            <Title order={3}>Blood Stock</Title>
-                        </Group>
-                        <SimpleGrid cols={4} spacing="md">
-                            {bloodTypes.map(({ key, label }) => (
-                                <Paper key={key} p="lg" radius="md" bg="gray.0" ta="center">
-                                    <Badge color="red" size="lg" mb="xs">{label}</Badge>
+                    {/* Occupancy bar */}
+                    <div style={{ marginBottom: 20 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+                            <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>Occupancy</span>
+                            <span style={{ fontSize: 11, fontWeight: 700, color: occupancyPct > 80 ? '#f87171' : '#34d399' }}>{occupancyPct}%</span>
+                        </div>
+                        <div style={{ height: 8, background: 'rgba(255,255,255,0.05)', borderRadius: 99, overflow: 'hidden' }}>
+                            <div style={{
+                                height: '100%', borderRadius: 99, transition: 'width 0.5s ease',
+                                width: `${occupancyPct}%`,
+                                background: occupancyPct > 80 ? 'linear-gradient(90deg, #ef4444, #f97316)' : 'linear-gradient(90deg, #10b981, #14b8a6)',
+                            }} />
+                        </div>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+                        <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 14, padding: 20, textAlign: 'center' }}>
+                            <p style={{ fontSize: 36, fontWeight: 800, color: 'white', lineHeight: 1 }}>{inventory.beds.total}</p>
+                            <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', marginTop: 4 }}>Total Beds</p>
+                            {editing && <input type="number" value={inventory.beds.total} onChange={e => handleBedChange('total', e.target.value)} min={0}
+                                style={{ width: '100%', marginTop: 10, padding: '8px 10px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', color: 'white', fontSize: 14, outline: 'none', textAlign: 'center', fontFamily: 'inherit' }} />}
+                        </div>
+                        <div style={{ background: 'rgba(16,185,129,0.06)', border: '1px solid rgba(16,185,129,0.2)', borderRadius: 14, padding: 20, textAlign: 'center' }}>
+                            <p style={{ fontSize: 36, fontWeight: 800, color: '#34d399', lineHeight: 1 }}>{inventory.beds.available}</p>
+                            <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', marginTop: 4 }}>Available</p>
+                            {editing && <input type="number" value={inventory.beds.available} onChange={e => handleBedChange('available', e.target.value)} min={0} max={inventory.beds.total}
+                                style={{ width: '100%', marginTop: 10, padding: '8px 10px', borderRadius: 8, border: '1px solid rgba(16,185,129,0.2)', background: 'rgba(16,185,129,0.06)', color: '#34d399', fontSize: 14, outline: 'none', textAlign: 'center', fontFamily: 'inherit' }} />}
+                        </div>
+                        <div style={{ background: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: 14, padding: 20, textAlign: 'center' }}>
+                            <p style={{ fontSize: 36, fontWeight: 800, color: '#f87171', lineHeight: 1 }}>{occupiedBeds}</p>
+                            <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', marginTop: 4 }}>Occupied</p>
+                        </div>
+                    </div>
+                </DarkCard>
+
+                {/* ── BLOOD STOCK ── */}
+                <DarkCard>
+                    <SectionHeader icon="🩸" title="Blood Stock" />
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: 10 }}>
+                        {bloodTypes.map(({ key, label }) => {
+                            const count = inventory.bloodStock[key] || 0;
+                            const isLow = count < 3;
+                            return (
+                                <div key={key} style={{
+                                    background: isLow ? 'rgba(239,68,68,0.06)' : 'rgba(255,255,255,0.03)',
+                                    border: `1px solid ${isLow ? 'rgba(239,68,68,0.2)' : 'rgba(255,255,255,0.06)'}`,
+                                    borderRadius: 12, padding: '16px 12px', textAlign: 'center',
+                                }}>
+                                    <span style={{
+                                        display: 'inline-block', padding: '3px 10px', borderRadius: 999,
+                                        background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.25)',
+                                        color: '#f87171', fontSize: 11, fontWeight: 700, marginBottom: 8,
+                                    }}>{label}</span>
                                     {editing ? (
-                                        <NumberInput value={inventory.bloodStock[key]} onChange={(v) => handleBloodChange(key, v)} min={0} />
+                                        <input type="number" value={count} onChange={e => handleBloodChange(key, e.target.value)} min={0}
+                                            style={{ width: '100%', padding: '8px 6px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', color: 'white', fontSize: 16, fontWeight: 700, outline: 'none', textAlign: 'center', fontFamily: 'inherit' }} />
                                     ) : (
-                                        <Text size="xl" fw={700}>{inventory.bloodStock[key]} <Text span size="sm" c="dimmed">units</Text></Text>
+                                        <div>
+                                            <p style={{ fontSize: 22, fontWeight: 800, color: isLow ? '#f87171' : 'white', lineHeight: 1 }}>{count}</p>
+                                            <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', marginTop: 2 }}>units</p>
+                                            {isLow && <p style={{ fontSize: 9, color: '#f87171', fontWeight: 700, marginTop: 4 }}>⚠ LOW</p>}
+                                        </div>
                                     )}
-                                </Paper>
-                            ))}
-                        </SimpleGrid>
-                    </Card>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </DarkCard>
 
-                    {editing && (
-                        <Group>
-                            <Button flex={1} size="lg" variant="gradient" gradient={{ from: 'violet', to: 'grape' }} onClick={handleSave} loading={saving}>
-                                Save Changes
-                            </Button>
-                            <Button variant="subtle" color="gray" onClick={() => { setEditing(false); setInventory(user?.inventory || inventory); }}>Cancel</Button>
-                        </Group>
-                    )}
+                {/* ── SAVE/CANCEL ── */}
+                {editing && (
+                    <div style={{ display: 'flex', gap: 10 }}>
+                        <button onClick={handleSave} disabled={saving} style={{
+                            flex: 1, padding: '15px', borderRadius: 12, border: 'none',
+                            background: 'linear-gradient(135deg, #8b5cf6, #a855f7)',
+                            color: 'white', fontWeight: 800, fontSize: 15, cursor: 'pointer', fontFamily: 'inherit',
+                            boxShadow: '0 6px 24px rgba(139,92,246,0.3)',
+                            opacity: saving ? 0.6 : 1,
+                            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                        }}>
+                            {saving && <span style={{ width: 16, height: 16, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: 'white', borderRadius: '50%', animation: 'spin 0.6s linear infinite', display: 'inline-block' }} />}
+                            Save Changes
+                        </button>
+                        <button onClick={() => { setEditing(false); setInventory(user?.inventory || inventory); }} style={{
+                            padding: '15px 24px', borderRadius: 12, border: '1px solid rgba(255,255,255,0.1)',
+                            background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.5)',
+                            fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
+                        }}>Cancel</button>
+                    </div>
+                )}
 
-                    {/* Contact */}
-                    <Card radius="lg" padding="xl" className="glass">
-                        <Group mb="md">
-                            <ThemeIcon size={40} radius="xl" color="blue"><span>📞</span></ThemeIcon>
-                            <Title order={3}>Contact Info</Title>
-                        </Group>
-                        <SimpleGrid cols={2}>
-                            <Box><Text c="dimmed" size="sm">Email</Text><Text fw={500}>{user?.email}</Text></Box>
-                            <Box><Text c="dimmed" size="sm">Phone</Text><Text fw={500}>{user?.phone}</Text></Box>
-                        </SimpleGrid>
-                    </Card>
-                </Stack>
-            </Container>
-        </Box>
+                {/* ── CONTACT ── */}
+                <DarkCard>
+                    <SectionHeader icon="📞" title="Contact Info" />
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                        <div>
+                            <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>Email</p>
+                            <p style={{ fontSize: 14, fontWeight: 600, color: 'rgba(255,255,255,0.7)' }}>{user?.email}</p>
+                        </div>
+                        <div>
+                            <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>Phone</p>
+                            <p style={{ fontSize: 14, fontWeight: 600, color: 'rgba(255,255,255,0.7)' }}>{user?.phone}</p>
+                        </div>
+                    </div>
+                </DarkCard>
+            </div>
+        </DashboardShell>
     );
 }
-
-export default HospitalDashboard;

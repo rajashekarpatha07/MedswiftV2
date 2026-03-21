@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { Container, Title, Text, TextInput, PasswordInput, Button, Card, Stack, Group, Anchor, Box, ThemeIcon } from '@mantine/core';
+import { useNavigate } from 'react-router-dom';
 import { notifications } from '@mantine/notifications';
 import { adminLogin } from '../../api/auth';
 import { useAuth } from '../../contexts/AuthContext';
+import AuthLayout from '../../components/AuthLayout';
+import { DarkInput, DarkPasswordInput, DarkButton } from '../../components/DarkFormControls';
 
-function AdminLogin() {
+export default function AdminLogin() {
     const navigate = useNavigate();
     const { login } = useAuth();
     const [formData, setFormData] = useState({ email: '', password: '' });
@@ -19,7 +20,7 @@ function AdminLogin() {
         try {
             const response = await adminLogin(formData.email, formData.password);
             if (response.status) {
-                notifications.show({ title: 'Welcome Admin!', message: 'System access granted', color: 'orange' });
+                notifications.show({ title: 'Welcome Admin!', message: 'System access granted ⚙️', color: 'orange' });
                 login(response.data.admin, response.data.accessToken, 'admin');
                 navigate('/admin/dashboard');
             }
@@ -29,30 +30,28 @@ function AdminLogin() {
     };
 
     return (
-        <Box style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)', display: 'flex', alignItems: 'center' }}>
-            <Container size={440}>
-                <Card padding={40} radius="xl" className="glass">
-                    <Anchor component={Link} to="/" c="dimmed" size="sm" mb="lg" style={{ display: 'block' }}>← Back to Home</Anchor>
-                    <Group mb="xl">
-                        <ThemeIcon size={50} radius="xl" variant="gradient" gradient={{ from: 'orange', to: 'red' }}>
-                            <span style={{ fontSize: '24px' }}>⚙️</span>
-                        </ThemeIcon>
-                        <Box>
-                            <Title order={2} fw={700}>Admin Login</Title>
-                            <Text c="dimmed" size="sm">System administration</Text>
-                        </Box>
-                    </Group>
-                    <form onSubmit={handleSubmit}>
-                        <Stack gap="md">
-                            <TextInput label="Email" placeholder="Enter admin email" name="email" type="email" value={formData.email} onChange={handleChange} size="md" required />
-                            <PasswordInput label="Password" placeholder="Enter password" name="password" value={formData.password} onChange={handleChange} size="md" required />
-                            <Button type="submit" fullWidth size="lg" variant="gradient" gradient={{ from: 'orange', to: 'red' }} loading={loading} mt="sm">Sign In</Button>
-                        </Stack>
-                    </form>
-                </Card>
-            </Container>
-        </Box>
+        <AuthLayout
+            icon="⚙️"
+            title="Admin Login"
+            subtitle="System administration & monitoring"
+            gradient="linear-gradient(135deg, #f43f5e, #ef4444)"
+            accentGlow="rgba(244,63,94,0.3)"
+        >
+            <form onSubmit={handleSubmit}>
+                <DarkInput
+                    label="Email" placeholder="Enter admin email"
+                    name="email" type="email" value={formData.email} onChange={handleChange}
+                    required accent="rgba(244,63,94,0.5)"
+                />
+                <DarkPasswordInput
+                    label="Password" placeholder="Enter password"
+                    name="password" value={formData.password} onChange={handleChange}
+                    required accent="rgba(244,63,94,0.5)"
+                />
+                <DarkButton gradient="linear-gradient(135deg, #f43f5e, #ef4444)" loading={loading}>
+                    Sign In
+                </DarkButton>
+            </form>
+        </AuthLayout>
     );
 }
-
-export default AdminLogin;

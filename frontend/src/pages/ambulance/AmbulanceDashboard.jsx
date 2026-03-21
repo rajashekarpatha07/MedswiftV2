@@ -1,31 +1,23 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-    Container, Title, Text, Button, Card, Stack, Group, Box, Badge,
-    Paper, ThemeIcon, Loader, SegmentedControl, Divider
-} from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { useAuth } from '../../contexts/AuthContext';
 import { useSocket } from '../../contexts/SocketContext';
 import { updateAmbulanceStatus, updateAmbulanceLocation } from '../../api/ambulance';
 import { getAmbulanceActiveTrip, acceptTrip, updateTripStatus } from '../../api/trip';
 import { navigateFromCurrent } from '../../components/LiveMap';
+import DashboardShell, { DarkCard, SectionHeader, DashboardLoader } from '../../components/DashboardShell';
 
-const statusFlow = {
-    'ACCEPTED': 'ARRIVED_PICKUP',
-    'ARRIVED_PICKUP': 'EN_ROUTE_HOSPITAL',
-    'EN_ROUTE_HOSPITAL': 'ARRIVED_HOSPITAL',
-    'ARRIVED_HOSPITAL': 'COMPLETED'
-};
+const statusFlow = { 'ACCEPTED': 'ARRIVED_PICKUP', 'ARRIVED_PICKUP': 'EN_ROUTE_HOSPITAL', 'EN_ROUTE_HOSPITAL': 'ARRIVED_HOSPITAL', 'ARRIVED_HOSPITAL': 'COMPLETED' };
+const statusLabels = { 'ARRIVED_PICKUP': 'Arrived at Pickup', 'EN_ROUTE_HOSPITAL': 'En Route to Hospital', 'ARRIVED_HOSPITAL': 'Arrived at Hospital', 'COMPLETED': 'Complete Trip' };
 
-const statusLabels = {
-    'ARRIVED_PICKUP': 'Arrived at Pickup',
-    'EN_ROUTE_HOSPITAL': 'En Route to Hospital',
-    'ARRIVED_HOSPITAL': 'Arrived at Hospital',
-    'COMPLETED': 'Complete Trip'
-};
+const driverStatuses = [
+    { value: 'offline', label: '🔴 Offline', color: '#6b7280' },
+    { value: 'ready',   label: '🟢 Ready',   color: '#10b981' },
+    { value: 'on-trip', label: '🟡 On Trip',  color: '#f59e0b' },
+];
 
-function AmbulanceDashboard() {
+export default function AmbulanceDashboard() {
     const navigate = useNavigate();
     const { user, logout, updateUser } = useAuth();
     const { isConnected, connectionError, joinTrip, on, emit } = useSocket();
@@ -36,97 +28,39 @@ function AmbulanceDashboard() {
     const [loading, setLoading] = useState(true);
     const [updating, setUpdating] = useState(false);
 
-    useEffect(() => {
-        loadActiveTrip();
-        const cleanup = startLocationUpdates();
-        return cleanup;
-    }, [status]);
+    useEffect(() => { loadActiveTrip(); const cleanup = startLocationUpdates(); return cleanup; }, [status]);
 
     useEffect(() => {
         if (!isConnected) return;
-
-        const unsubRequest = on('new_trip_request', (trip) => {
-            notifications.show({ title: 'New Request!', message: 'A patient needs help', color: 'blue' });
-            setPendingTrips(prev => [...prev, trip]);
-        });
-
-        const unsubAssigned = on('new_trip_assigned', (data) => {
+        const unsubReq = on('new_trip_request', (trip) => { notifications.show({ title: 'New Request!', message: 'A patient needs help', color: 'blue' }); setPendingTrips(p => [...p, trip]); });
+        const unsubAssign = on('new_trip_assigned', (data) => {
             notifications.show({ title: '🚨 Trip Assigned!', message: 'New emergency trip assigned to you', color: 'red' });
-            setActiveTrip(data.trip);
-            setStatus('on-trip');
-            if (data.tripId) joinTrip(data.tripId);
-
-            // Auto-open navigation to pickup location
-            if (data.trip?.pickup?.coordinates) {
-                const [lng, lat] = data.trip.pickup.coordinates;
-                setTimeout(() => {
-                    notifications.show({
-                        title: '🗺️ Opening Navigation',
-                        message: 'Navigate to pickup location',
-                        color: 'teal'
-                    });
-                    navigateFromCurrent(lat, lng);
-                }, 1500);
-            }
+            setActiveTrip(data.trip); setStatus('on-trip'); if (data.tripId) joinTrip(data.tripId);
+            if (data.trip?.pickup?.coordinates) { const [lng, lat] = data.trip.pickup.coordinates; setTimeout(() => { navigateFromCurrent(lat, lng); }, 1500); }
         });
-
-        return () => { unsubRequest(); unsubAssigned(); };
+        return () => { unsubReq(); unsubAssign(); };
     }, [isConnected, on, joinTrip]);
 
     const loadActiveTrip = async () => {
         try {
             const res = await getAmbulanceActiveTrip();
-            console.log('📍 Ambulance active trip loaded:', res);
-            if (res.data) {
-                setActiveTrip(res.data);
-                // CRITICAL: Also set status to on-trip so UI shows trip details
-                setStatus('on-trip');
-                updateUser({ status: 'on-trip' });
-                if (res.data._id) joinTrip(res.data._id);
-            }
-        } catch (err) {
-            console.log('No active trip or error:', err);
-        }
-        finally { setLoading(false); }
+            if (res.data) { setActiveTrip(res.data); setStatus('on-trip'); updateUser({ status: 'on-trip' }); if (res.data._id) joinTrip(res.data._id); }
+        } catch {} finally { setLoading(false); }
     };
 
     const startLocationUpdates = () => {
-        if (!navigator.geolocation) return () => { };
-
-        // Send location immediately
+        if (!navigator.geolocation) return () => {};
         navigator.geolocation.getCurrentPosition(async (pos) => {
-            try {
-                await updateAmbulanceLocation([pos.coords.longitude, pos.coords.latitude]);
-                // Also emit via socket for real-time updates to patient
-                if (emit && activeTrip?._id) {
-                    emit('location_update', {
-                        tripId: activeTrip._id,
-                        location: {
-                            latitude: pos.coords.latitude,
-                            longitude: pos.coords.longitude
-                        }
-                    });
-                }
-            } catch { }
+            try { await updateAmbulanceLocation([pos.coords.longitude, pos.coords.latitude]);
+                if (emit && activeTrip?._id) emit('location_update', { tripId: activeTrip._id, location: { latitude: pos.coords.latitude, longitude: pos.coords.longitude } });
+            } catch {}
         });
-
-        // Then update every 10 seconds for more frequent updates
         const id = setInterval(() => {
             if (status === 'ready' || status === 'on-trip') {
                 navigator.geolocation.getCurrentPosition(async (pos) => {
-                    try {
-                        await updateAmbulanceLocation([pos.coords.longitude, pos.coords.latitude]);
-                        // Emit location to patient via socket
-                        if (emit && activeTrip?._id) {
-                            emit('location_update', {
-                                tripId: activeTrip._id,
-                                location: {
-                                    latitude: pos.coords.latitude,
-                                    longitude: pos.coords.longitude
-                                }
-                            });
-                        }
-                    } catch { }
+                    try { await updateAmbulanceLocation([pos.coords.longitude, pos.coords.latitude]);
+                        if (emit && activeTrip?._id) emit('location_update', { tripId: activeTrip._id, location: { latitude: pos.coords.latitude, longitude: pos.coords.longitude } });
+                    } catch {}
                 });
             }
         }, 10000);
@@ -135,248 +69,167 @@ function AmbulanceDashboard() {
 
     const handleStatusChange = async (newStatus) => {
         setUpdating(true);
-        try {
-            await updateAmbulanceStatus(newStatus);
-            setStatus(newStatus);
-            updateUser({ status: newStatus });
-            notifications.show({ title: 'Status Updated', message: `Now ${newStatus}`, color: 'teal' });
-        } catch (err) {
-            notifications.show({ title: 'Error', message: err.response?.data?.message || 'Failed to update', color: 'red' });
-        } finally { setUpdating(false); }
+        try { await updateAmbulanceStatus(newStatus); setStatus(newStatus); updateUser({ status: newStatus }); notifications.show({ title: 'Status Updated', message: `Now ${newStatus}`, color: 'teal' });
+        } catch (err) { notifications.show({ title: 'Error', message: err.response?.data?.message || 'Failed', color: 'red' }); } finally { setUpdating(false); }
     };
 
     const handleAcceptTrip = async (tripId, pickupCoords) => {
         setUpdating(true);
         try {
             const res = await acceptTrip(tripId);
-            if (res.status) {
-                setActiveTrip(res.data);
-                setPendingTrips(prev => prev.filter(t => t._id !== tripId));
-                handleStatusChange('on-trip');
-                joinTrip(tripId);
-                notifications.show({ title: 'Trip Accepted!', message: 'Opening navigation...', color: 'teal' });
-
-                // Open Google Maps with route to pickup
-                if (pickupCoords || res.data?.pickup?.coordinates) {
-                    const coords = pickupCoords || res.data.pickup.coordinates;
-                    const [lng, lat] = coords;
-                    setTimeout(() => navigateFromCurrent(lat, lng), 1000);
-                }
+            if (res.status) { setActiveTrip(res.data); setPendingTrips(p => p.filter(t => t._id !== tripId)); handleStatusChange('on-trip'); joinTrip(tripId);
+                notifications.show({ title: 'Trip Accepted!', message: 'Opening navigation…', color: 'teal' });
+                if (pickupCoords || res.data?.pickup?.coordinates) { const coords = pickupCoords || res.data.pickup.coordinates; const [lng, lat] = coords; setTimeout(() => navigateFromCurrent(lat, lng), 1000); }
             }
-        } catch (err) {
-            notifications.show({ title: 'Error', message: err.response?.data?.message || 'Failed to accept', color: 'red' });
-        } finally { setUpdating(false); }
+        } catch (err) { notifications.show({ title: 'Error', message: err.response?.data?.message || 'Failed', color: 'red' }); } finally { setUpdating(false); }
     };
 
     const handleUpdateTrip = async (newStatus) => {
         if (!activeTrip) return;
         setUpdating(true);
-
         try {
-            const pos = await new Promise((res, rej) => {
-                navigator.geolocation.getCurrentPosition(res, rej, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
-            });
-
+            const pos = await new Promise((res, rej) => navigator.geolocation.getCurrentPosition(res, rej, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }));
             const location = [pos.coords.longitude, pos.coords.latitude];
             const res = await updateTripStatus(activeTrip._id, newStatus, location);
-
-            setActiveTrip(res.data);
-            notifications.show({ title: 'Updated', message: statusLabels[newStatus] || newStatus, color: 'teal' });
-
-            // If moving to hospital, open navigation to hospital
-            if (newStatus === 'EN_ROUTE_HOSPITAL' && res.data?.dropoff?.coordinates) {
-                const [lng, lat] = res.data.dropoff.coordinates;
-                notifications.show({ title: '🗺️ Opening Navigation', message: 'Navigate to hospital', color: 'blue' });
-                setTimeout(() => navigateFromCurrent(lat, lng), 1500);
-            }
-
-            if (newStatus === 'COMPLETED') {
-                handleStatusChange('ready');
-                setActiveTrip(null);
-            }
-        } catch (err) {
-            notifications.show({ title: 'Error', message: err.code ? 'Enable GPS' : (err.response?.data?.message || 'Failed'), color: 'red' });
-        } finally { setUpdating(false); }
+            setActiveTrip(res.data); notifications.show({ title: 'Updated', message: statusLabels[newStatus] || newStatus, color: 'teal' });
+            if (newStatus === 'EN_ROUTE_HOSPITAL' && res.data?.dropoff?.coordinates) { const [lng, lat] = res.data.dropoff.coordinates; setTimeout(() => navigateFromCurrent(lat, lng), 1500); }
+            if (newStatus === 'COMPLETED') { handleStatusChange('ready'); setActiveTrip(null); }
+        } catch (err) { notifications.show({ title: 'Error', message: err.code ? 'Enable GPS' : (err.response?.data?.message || 'Failed'), color: 'red' }); } finally { setUpdating(false); }
     };
 
-    // Helper to open navigation manually
     const openNavigationTo = (type) => {
-        let coords = null;
-        if (type === 'pickup' && activeTrip?.pickup?.coordinates) {
-            coords = activeTrip.pickup.coordinates;
-        } else if (type === 'hospital' && activeTrip?.dropoff?.coordinates) {
-            coords = activeTrip.dropoff.coordinates;
-        }
-
-        if (coords) {
-            const [lng, lat] = coords;
-            navigateFromCurrent(lat, lng);
-        } else {
-            notifications.show({ title: 'Error', message: 'No coordinates available', color: 'red' });
-        }
+        let coords = type === 'pickup' ? activeTrip?.pickup?.coordinates : activeTrip?.dropoff?.coordinates;
+        if (coords) { const [lng, lat] = coords; navigateFromCurrent(lat, lng); }
+        else notifications.show({ title: 'Error', message: 'No coordinates', color: 'red' });
     };
 
-    const handleLogout = async () => {
-        await handleStatusChange('offline');
-        await logout();
-        navigate('/');
-    };
+    const handleLogout = async () => { await handleStatusChange('offline'); await logout(); navigate('/'); };
 
-    if (loading) {
-        return (
-            <Box style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Loader size="xl" color="teal" />
-            </Box>
-        );
-    }
+    if (loading) return <DashboardLoader />;
+
+    const currentStatusColor = driverStatuses.find(s => s.value === status)?.color || '#6b7280';
 
     return (
-        <Box style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)' }}>
-            {/* Header */}
-            <Paper py="md" px="xl" style={{ background: 'rgba(255,255,255,0.95)', position: 'sticky', top: 0, zIndex: 100 }}>
-                <Group justify="space-between">
-                    <Group>
-                        <ThemeIcon size={45} radius="xl" variant="gradient" gradient={{ from: 'teal', to: 'green' }}>
-                            <span style={{ fontSize: '20px' }}>🚑</span>
-                        </ThemeIcon>
-                        <Box>
-                            <Text fw={600} size="lg">{user?.driverName}</Text>
-                            <Text size="sm" c="dimmed">{user?.vehicleNumber}</Text>
-                        </Box>
-                    </Group>
-                    <Group>
-                        <Badge color={isConnected ? 'teal' : 'red'} variant="dot" size="lg">
-                            {isConnected ? 'Connected' : 'Disconnected'}
-                        </Badge>
-                        <Button variant="subtle" color="gray" onClick={handleLogout}>Logout</Button>
-                    </Group>
-                </Group>
-            </Paper>
+        <DashboardShell
+            icon="🚑" title={user?.driverName || 'Ambulance'}
+            subtitle={user?.vehicleNumber || 'Driver Dashboard'}
+            gradient="linear-gradient(135deg, #10b981, #14b8a6)"
+            userName={user?.driverName}
+            isConnected={isConnected}
+            onLogout={handleLogout}
+        >
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
 
-            <Container size="md" py="xl">
-                <Stack gap="lg">
-                    {/* Status Control */}
-                    <Card radius="lg" padding="xl" className="glass">
-                        <Title order={4} mb="md">Driver Status</Title>
-                        <SegmentedControl
-                            fullWidth
-                            size="lg"
-                            value={status}
-                            onChange={handleStatusChange}
-                            disabled={updating || status === 'on-trip'}
-                            data={[
-                                { label: '🔴 Offline', value: 'offline' },
-                                { label: '🟢 Ready', value: 'ready' },
-                                ...(status === 'on-trip' ? [{ label: '🟡 On Trip', value: 'on-trip' }] : [])
-                            ]}
-                            color={status === 'ready' ? 'teal' : status === 'on-trip' ? 'yellow' : 'gray'}
+                {/* ── STATUS CONTROL ── */}
+                <DarkCard>
+                    <SectionHeader icon="📡" title="Driver Status"
+                        badge={
+                            <span style={{ padding: '4px 12px', borderRadius: 999, fontSize: 11, fontWeight: 700, background: `${currentStatusColor}18`, border: `1px solid ${currentStatusColor}40`, color: currentStatusColor }}>
+                                {status.toUpperCase()}
+                            </span>
+                        }
+                    />
+                    <div style={{ display: 'flex', gap: 8 }}>
+                        {driverStatuses.filter(s => s.value !== 'on-trip' || status === 'on-trip').map(s => (
+                            <button key={s.value} onClick={() => s.value !== 'on-trip' && handleStatusChange(s.value)}
+                                disabled={updating || status === 'on-trip'}
+                                style={{
+                                    flex: 1, padding: '14px 12px', borderRadius: 12,
+                                    border: `1px solid ${status === s.value ? s.color + '50' : 'rgba(255,255,255,0.08)'}`,
+                                    background: status === s.value ? s.color + '15' : 'rgba(255,255,255,0.03)',
+                                    color: status === s.value ? s.color : 'rgba(255,255,255,0.5)',
+                                    fontWeight: 700, fontSize: 13, cursor: status === 'on-trip' ? 'not-allowed' : 'pointer',
+                                    fontFamily: 'inherit', transition: 'all 0.2s',
+                                    opacity: (updating || (status === 'on-trip' && s.value !== 'on-trip')) ? 0.4 : 1,
+                                }}>
+                                {s.label}
+                            </button>
+                        ))}
+                    </div>
+                </DarkCard>
+
+                {/* ── ACTIVE TRIP ── */}
+                {activeTrip && (
+                    <DarkCard accentBorder="rgba(239,68,68,0.3)">
+                        <SectionHeader icon="🚨" title="Active Emergency"
+                            badge={<span style={{ padding: '4px 12px', borderRadius: 999, fontSize: 11, fontWeight: 700, background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.3)', color: '#34d399' }}>{activeTrip.status.replace(/_/g, ' ')}</span>}
                         />
-                    </Card>
 
-                    {/* Active Trip */}
-                    {activeTrip && (
-                        <Card radius="lg" padding="xl" className="glass" style={{ border: '2px solid #10b981' }}>
-                            <Group justify="space-between" mb="md">
-                                <Group>
-                                    <ThemeIcon size={40} radius="xl" color="red">
-                                        <span>🚨</span>
-                                    </ThemeIcon>
-                                    <Title order={3}>Active Emergency</Title>
-                                </Group>
-                                <Badge size="lg" color="teal">{activeTrip.status.replace(/_/g, ' ')}</Badge>
-                            </Group>
+                        {/* Patient details */}
+                        <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 12, padding: 16, marginBottom: 16 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
+                                <span style={{ fontSize: 16, fontWeight: 700, color: 'white' }}>{activeTrip.patientSnapshot?.name}</span>
+                                <span style={{ padding: '3px 10px', borderRadius: 999, background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.25)', color: '#f87171', fontSize: 11, fontWeight: 700 }}>🩸 {activeTrip.patientSnapshot?.bloodGroup}</span>
+                            </div>
+                            <p style={{ margin: '0 0 4px', fontSize: 13, color: 'rgba(255,255,255,0.6)' }}>📞 {activeTrip.patientSnapshot?.phone}</p>
+                            <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', marginTop: 10, paddingTop: 10 }}>
+                                <p style={{ margin: '0 0 4px', fontSize: 12, color: 'rgba(255,255,255,0.4)' }}>📍 Pickup: {activeTrip.pickup?.address}</p>
+                                <p style={{ margin: 0, fontSize: 12, color: 'rgba(255,255,255,0.4)' }}>🏥 Hospital: {activeTrip.dropoff?.address}</p>
+                            </div>
+                        </div>
 
-                            <Paper p="md" radius="md" bg="gray.0" mb="md">
-                                <Stack gap="xs">
-                                    <Group>
-                                        <Text fw={700} size="lg">{activeTrip.patientSnapshot?.name}</Text>
-                                        <Badge color="red" variant="light">🩸 {activeTrip.patientSnapshot?.bloodGroup}</Badge>
-                                    </Group>
-                                    <Text size="sm">📞 {activeTrip.patientSnapshot?.phone}</Text>
-                                    <Divider my="xs" />
-                                    <Text size="sm" c="dimmed">📍 Pickup: {activeTrip.pickup?.address}</Text>
-                                    <Text size="sm" c="dimmed">🏥 Dropoff: {activeTrip.dropoff?.address}</Text>
-                                </Stack>
-                            </Paper>
+                        {/* Navigation buttons */}
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 16 }}>
+                            <button onClick={() => openNavigationTo('pickup')} disabled={!activeTrip.pickup?.coordinates}
+                                style={{ padding: '12px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg, #3b82f6, #06b6d4)', color: 'white', fontWeight: 700, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit', opacity: !activeTrip.pickup?.coordinates ? 0.4 : 1 }}>
+                                🗺️ Navigate to Pickup
+                            </button>
+                            <button onClick={() => openNavigationTo('hospital')} disabled={!activeTrip.dropoff?.coordinates}
+                                style={{ padding: '12px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg, #8b5cf6, #a855f7)', color: 'white', fontWeight: 700, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit', opacity: !activeTrip.dropoff?.coordinates ? 0.4 : 1 }}>
+                                🏥 Navigate to Hospital
+                            </button>
+                        </div>
 
-                            {/* Navigation Buttons */}
-                            <Group mb="md">
-                                <Button
-                                    flex={1}
-                                    variant="gradient"
-                                    gradient={{ from: 'blue', to: 'cyan' }}
-                                    leftSection="🗺️"
-                                    onClick={() => openNavigationTo('pickup')}
-                                    disabled={!activeTrip.pickup?.coordinates}
-                                >
-                                    Navigate to Pickup
-                                </Button>
-                                <Button
-                                    flex={1}
-                                    variant="gradient"
-                                    gradient={{ from: 'violet', to: 'grape' }}
-                                    leftSection="🏥"
-                                    onClick={() => openNavigationTo('hospital')}
-                                    disabled={!activeTrip.dropoff?.coordinates}
-                                >
-                                    Navigate to Hospital
-                                </Button>
-                            </Group>
+                        {/* Next status button */}
+                        {statusFlow[activeTrip.status] && (
+                            <button onClick={() => handleUpdateTrip(statusFlow[activeTrip.status])} disabled={updating}
+                                style={{
+                                    width: '100%', padding: '16px', borderRadius: 12, border: 'none',
+                                    background: 'linear-gradient(135deg, #10b981, #14b8a6)',
+                                    color: 'white', fontWeight: 800, fontSize: 15, cursor: 'pointer', fontFamily: 'inherit',
+                                    boxShadow: '0 6px 24px rgba(16,185,129,0.3)',
+                                    opacity: updating ? 0.6 : 1,
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                                }}>
+                                {updating && <span style={{ width: 16, height: 16, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: 'white', borderRadius: '50%', animation: 'spin 0.6s linear infinite', display: 'inline-block' }} />}
+                                ✓ {statusLabels[statusFlow[activeTrip.status]]}
+                            </button>
+                        )}
+                    </DarkCard>
+                )}
 
-                            {statusFlow[activeTrip.status] && (
-                                <Button
-                                    fullWidth
-                                    size="lg"
-                                    variant="gradient"
-                                    gradient={{ from: 'teal', to: 'green' }}
-                                    onClick={() => handleUpdateTrip(statusFlow[activeTrip.status])}
-                                    loading={updating}
-                                >
-                                    ✓ {statusLabels[statusFlow[activeTrip.status]]}
-                                </Button>
-                            )}
-                        </Card>
-                    )}
-
-                    {/* Pending Requests */}
-                    {status === 'ready' && !activeTrip && (
-                        <Card radius="lg" padding="xl" className="glass">
-                            <Title order={4} mb="md">📡 Incoming Requests</Title>
-                            {pendingTrips.length === 0 ? (
-                                <Box ta="center" py="xl">
-                                    <Text size="xl" mb="xs">📡</Text>
-                                    <Text c="dimmed">Waiting for trip requests...</Text>
-                                </Box>
-                            ) : (
-                                <Stack gap="md">
-                                    {pendingTrips.map((trip) => (
-                                        <Paper key={trip._id} p="md" radius="md" bg="gray.0">
-                                            <Group justify="space-between" mb="sm">
-                                                <Box>
-                                                    <Text fw={600}>{trip.patientSnapshot?.name}</Text>
-                                                    <Badge color="red" variant="light" size="sm">🩸 {trip.patientSnapshot?.bloodGroup}</Badge>
-                                                </Box>
-                                            </Group>
-                                            <Text size="sm" c="dimmed" mb="sm">{trip.pickup?.address}</Text>
-                                            <Button
-                                                fullWidth
-                                                variant="gradient"
-                                                gradient={{ from: 'teal', to: 'green' }}
-                                                onClick={() => handleAcceptTrip(trip._id, trip.pickup?.coordinates)}
-                                                loading={updating}
-                                            >
-                                                Accept & Navigate
-                                            </Button>
-                                        </Paper>
-                                    ))}
-                                </Stack>
-                            )}
-                        </Card>
-                    )}
-                </Stack>
-            </Container>
-        </Box>
+                {/* ── INCOMING REQUESTS ── */}
+                {status === 'ready' && !activeTrip && (
+                    <DarkCard>
+                        <SectionHeader icon="📡" title="Incoming Requests"
+                            badge={pendingTrips.length > 0 && <span style={{ padding: '3px 10px', borderRadius: 999, background: 'rgba(59,130,246,0.1)', border: '1px solid rgba(59,130,246,0.3)', color: '#60a5fa', fontSize: 11, fontWeight: 700 }}>{pendingTrips.length}</span>}
+                        />
+                        {pendingTrips.length === 0 ? (
+                            <div style={{ textAlign: 'center', padding: '48px 0' }}>
+                                <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'rgba(16,185,129,0.08)', border: '2px solid rgba(16,185,129,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, margin: '0 auto 16px', animation: 'breathe 3s ease-in-out infinite' }}>📡</div>
+                                <p style={{ fontSize: 14, fontWeight: 600, color: 'rgba(255,255,255,0.5)', marginBottom: 4 }}>Waiting for trip requests…</p>
+                                <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.25)' }}>You'll be notified when a patient needs help nearby</p>
+                            </div>
+                        ) : (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                                {pendingTrips.map(trip => (
+                                    <div key={trip._id} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: 16 }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                                            <span style={{ fontSize: 15, fontWeight: 700, color: 'white' }}>{trip.patientSnapshot?.name}</span>
+                                            <span style={{ padding: '3px 10px', borderRadius: 999, background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.25)', color: '#f87171', fontSize: 11, fontWeight: 700 }}>🩸 {trip.patientSnapshot?.bloodGroup}</span>
+                                        </div>
+                                        <p style={{ margin: '0 0 12px', fontSize: 12, color: 'rgba(255,255,255,0.4)' }}>{trip.pickup?.address}</p>
+                                        <button onClick={() => handleAcceptTrip(trip._id, trip.pickup?.coordinates)} disabled={updating}
+                                            style={{ width: '100%', padding: '12px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg, #10b981, #14b8a6)', color: 'white', fontWeight: 700, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit', opacity: updating ? 0.6 : 1 }}>
+                                            Accept & Navigate
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </DarkCard>
+                )}
+            </div>
+        </DashboardShell>
     );
 }
-
-export default AmbulanceDashboard;
